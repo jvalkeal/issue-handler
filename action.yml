@@ -1,0 +1,13 @@
+name: 'Issue Handler'
+description: 'Issue Handler'
+author: 'jvalkeal'
+inputs:
+  token:
+    description: 'Github api token for operations'
+    required: true
+  config:
+    description: 'Action spesific issue handler control config'
+    required: true
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

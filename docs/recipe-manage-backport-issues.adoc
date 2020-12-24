@@ -1,0 +1,20 @@
+# Recipe Manage Backport Issues
+
+[source,yaml]
+----
+config: >
+  {
+    "recipes": [
+      {
+        "name": "Create backport issues when labeled",
+        "type": "manageBackportIssues",
+        "whenLabeled": "labeledStartsWith(['branch/])",
+        "whenLabels": "labelsContains(['for/backport'])",
+        "fromLabels": "labeledStartsWith(['branch/])",
+        "additionalLabels": "['type/backport']",
+        "title": "title",
+        "body": "'Backport #' + number"
+      }
+    ]
+  }
+----
