@@ -1,6 +1,8 @@
 # Issue Handler GitHub Action
 
-GitHub Action to handle various issues with a recipes.
+<p align="left">
+  <a href="https://github.com/jvalkeal/issue-handler"><img alt="GitHub Actions status" src="https://github.com/jvalkeal/issue-handler/workflows/Test/badge.svg"></a>
+</p>
 
 # Usage
 
