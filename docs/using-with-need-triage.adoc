@@ -1,0 +1,26 @@
+# Triage New Issues
+
+In a project new issues comes and goes, some created by project trusted members
+and we don't want to bug then about their issues. For community members outside
+of a team we want to give a label to issues for core team to make sure that
+eventually that new issue will get "triaged", aka handled in terms of doing
+someting about it.
+
+What about if you just create a new recipe to mark new issue, which is
+an event `issues`, has an action type `opened`, don't have any milestones
+nor labels.
+
+[source,yaml]
+----
+config: >
+  {
+    "recipes": [
+      {
+        "name": "Mark new issue to get triaged",
+        "type": "ifThen",
+        "if": "isEvent('issues') && isAction('opened') && !isMilestone() && !hasLabels()",
+        "then": "labelIssue(['status/need-triage'])"
+      },
+    ]
+  }
+----

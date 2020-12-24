@@ -1,4 +1,17 @@
-# Recipe Manage Backport Issues
+# Manage Backport Issues
+
+This recipe is meant for a particular case where you manage issue backports
+via issue. Needs to have specific GH label setup with issues and works like
+this:
+
+- Having label `for/workflow` meant to backport issues.
+- Having labels `branch/xxx` which will be related to backport issues.
+- When to enable this recipe with issue labeled name.
+- When to enable this recipe with issue label.
+- Choose from which labels a new issues will be created.
+- Pick additional labels for new issue.
+- Pick name for new issue.
+- Pick body for new issue.
 
 [source,yaml]
 ----
