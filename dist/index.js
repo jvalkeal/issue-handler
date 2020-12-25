@@ -2020,10 +2020,16 @@ function getLabelsStartsWith(githubContext, labels) {
     return [];
 }
 exports.getLabelsStartsWith = getLabelsStartsWith;
+/**
+ * Checks if given event is same as in a context.
+ */
 function isEvent(githubContext, event) {
     return githubContext.eventName === event;
 }
 exports.isEvent = isEvent;
+/**
+ * Checks if given action is same as in a context.
+ */
 function isAction(githubContext, action) {
     return githubContext.payload.action === action;
 }
@@ -2333,53 +2339,55 @@ function handleManageBackportIssues(recipe, jexl, expressionContext, token) {
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
         const issueNumber = expressionContext.context.issue.number;
-        // we only do something when issue is labeled, for now
-        if (!context_utils_1.isEvent(expressionContext.context, 'issues') || !context_utils_1.isAction(expressionContext.context, 'labeled')) {
+        const issueTitle = expressionContext.title;
+        // only handle issues
+        if (!context_utils_1.isEvent(expressionContext.context, 'issues')) {
             return;
         }
-        const whenLabeled = jexl_utils_1.isResultTruthy(yield jexl_utils_1.evaluateAndLog(jexl, recipe.whenLabeled, expressionContext));
+        const title = `Backport#${issueNumber}: ${issueTitle}`;
         const whenLabels = jexl_utils_1.isResultTruthy(yield jexl_utils_1.evaluateAndLog(jexl, recipe.whenLabels, expressionContext));
         const fromLabels = jexl_utils_1.resultAsStringArray(yield jexl_utils_1.evaluateAndLog(jexl, recipe.fromLabels, expressionContext));
-        const additionalLabels = jexl_utils_1.resultAsStringArray(yield jexl_utils_1.evaluateAndLog(jexl, recipe.additionalLabels, expressionContext));
-        const title = yield jexl_utils_1.evaluateAndLog(jexl, recipe.title, expressionContext);
-        const body = yield jexl_utils_1.evaluateAndLog(jexl, recipe.body, expressionContext);
-        if (whenLabeled && whenLabels) {
-            yield findThenCreate(token, owner, repo, fromLabels, additionalLabels, title, body, issueNumber);
+        if (context_utils_1.isAction(expressionContext.context, 'labeled') && recipe.whenLabeled) {
+            const whenLabeled = jexl_utils_1.isResultTruthy(yield jexl_utils_1.evaluateAndLog(jexl, recipe.whenLabeled, expressionContext));
+            let additionalLabels = [];
+            if (recipe.additionalLabels) {
+                additionalLabels = jexl_utils_1.resultAsStringArray(yield jexl_utils_1.evaluateAndLog(jexl, recipe.additionalLabels, expressionContext));
+            }
+            let body = '';
+            if (recipe.body) {
+                body = yield jexl_utils_1.evaluateAndLog(jexl, recipe.body, expressionContext);
+            }
+            if (whenLabeled && whenLabels) {
+                yield findThenCreate(token, owner, repo, fromLabels, additionalLabels, title, body);
+            }
         }
-        // const evalWhenLabeled = await evaluateAndLog(jexl, recipe.whenLabeled, expressionContext);
-        // const evalFromLabels = await evaluateAndLog(jexl, recipe.fromLabels, expressionContext);
-        // const evalAdditionalLabels = await evaluateAndLog(jexl, recipe.additionalLabels, expressionContext);
-        // const usedWhenLabeled = resultAsStringArray(evalWhenLabeled);
-        // const usedFromLabels = resultAsStringArray(evalFromLabels);
-        // const usedAdditionalLabels = resultAsStringArray(evalAdditionalLabels);
-        // const usedTitle = await evaluateAndLog(jexl, recipe.title, expressionContext);
-        // const usedBody = await evaluateAndLog(jexl, recipe.body, expressionContext);
-        // const xor = (left: boolean, right: boolean ) => ( left || right ) && !( left && right );
-        // if (containsLabeled(expressionContext.context, usedWhenLabeled) || containsAnyLabel(expressionContext.context, usedWhenLabeled)) {
-        // if (xor(containsLabeled(expressionContext.context, usedWhenLabeled), containsAnyLabel(expressionContext.context, usedWhenLabeled))) {
-        //   for (const l of usedFromLabels) {
-        //     const issues = await findIssuesWithLabels(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, [l]);
-        //     if (issues.length == 0) {
-        //       const usedAdditionalLabelsX = [...usedAdditionalLabels, l];
-        //       await createIssue(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, usedBody, usedAdditionalLabelsX);
-        //     }
-        //   }
-        // }
-        // if (containsLabeled(expressionContext.context, usedWhenLabeled) && containsAnyLabel(expressionContext.context, usedWhenLabeled)) {
-        //   await findThenCreate(token, owner, repo, usedFromLabels, usedAdditionalLabels, usedTitle, usedBody, issueNumber);
-        // } else if (!containsLabeled(expressionContext.context, usedWhenLabeled) && containsAnyLabel(expressionContext.context, usedWhenLabeled)) {
-        //   await findThenCreate(token, owner, repo, usedFromLabels, usedAdditionalLabels, usedTitle, usedBody, issueNumber);
-        // }
+        if (context_utils_1.isAction(expressionContext.context, 'unlabeled') && recipe.whenUnlabeled) {
+            const whenUnlabeled = jexl_utils_1.isResultTruthy(yield jexl_utils_1.evaluateAndLog(jexl, recipe.whenUnlabeled, expressionContext));
+            if (whenUnlabeled && whenLabels) {
+                yield findThenClose(token, owner, repo, fromLabels, title);
+            }
+        }
     });
 }
 exports.handleManageBackportIssues = handleManageBackportIssues;
-function findThenCreate(token, owner, repo, usedFromLabels, usedAdditionalLabels, usedTitle, usedBody, issueNumber) {
+function findThenCreate(token, owner, repo, usedFromLabels, usedAdditionalLabels, usedTitle, usedBody) {
     return __awaiter(this, void 0, void 0, function* () {
         for (const l of usedFromLabels) {
-            const issues = yield github_utils_1.findIssuesWithLabels(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, [l]);
+            const issues = yield github_utils_1.findIssuesWithLabels(token, owner, repo, usedTitle, [l]);
             if (issues.length == 0) {
-                const usedAdditionalLabelsX = [...usedAdditionalLabels, l];
-                yield github_utils_1.createIssue(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, usedBody, usedAdditionalLabelsX);
+                yield github_utils_1.createIssue(token, owner, repo, usedTitle, usedBody, [...usedAdditionalLabels, l]);
+            }
+        }
+    });
+}
+function findThenClose(token, owner, repo, labels, title) {
+    return __awaiter(this, void 0, void 0, function* () {
+        for (const l of labels) {
+            const issues = yield github_utils_1.findIssuesWithLabels(token, owner, repo, title, [l]);
+            if (issues.length > 0) {
+                for (const n of issues) {
+                    yield github_utils_1.closeIssue(token, owner, repo, n);
+                }
             }
         }
     });
@@ -8675,13 +8683,20 @@ function createIssue(token, owner, repo, title, body, labels) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info(`Creating issue with labels '${labels}' with title '${title}'`);
         const octokit = github.getOctokit(token);
-        yield octokit.request('POST /repos/{owner}/{repo}/issues', {
-            owner: owner,
-            repo: repo,
-            title: title,
-            body: body,
+        yield octokit.issues.create({
+            owner,
+            repo,
+            title,
+            body,
             labels: labels || []
         });
+        // await octokit.request('POST /repos/{owner}/{repo}/issues', {
+        //   owner: owner,
+        //   repo: repo,
+        //   title: title,
+        //   body: body,
+        //   labels: labels || []
+        // });
     });
 }
 exports.createIssue = createIssue;
@@ -8690,14 +8705,20 @@ exports.createIssue = createIssue;
  */
 function closeIssue(token, owner, repo, issue_number) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug(`Closing issue ${owner} ${repo} ${issue_number}`);
+        core.info(`Closing issue ${owner} ${repo} ${issue_number}`);
         const octokit = github.getOctokit(token);
-        yield octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-            owner: owner,
-            repo: repo,
-            issue_number: issue_number,
+        yield octokit.issues.update({
+            owner,
+            repo,
+            issue_number,
             state: 'closed'
         });
+        // await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+        //   owner: owner,
+        //   repo: repo,
+        //   issue_number: issue_number,
+        //   state: 'closed'
+        // });
     });
 }
 exports.closeIssue = closeIssue;
