@@ -47,10 +47,16 @@ export function getLabelsStartsWith(githubContext: Context, labels: string[]): s
   return [];
 }
 
+/**
+ * Checks if given event is same as in a context.
+ */
 export function isEvent(githubContext: Context, event: string): boolean {
   return githubContext.eventName === event;
 }
 
+/**
+ * Checks if given action is same as in a context.
+ */
 export function isAction(githubContext: Context, action: string): boolean {
   return githubContext.payload.action === action;
 }

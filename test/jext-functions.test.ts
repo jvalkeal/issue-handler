@@ -11,7 +11,7 @@ describe('jexl-functions tests', () => {
 
   it('containsLabels returns true if label match', async () => {
     addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE);
-    const result: boolean = await jexl.eval('containsLabels(["area/core"])');
+    const result: boolean = await jexl.eval('containsLabels(["for/backport"])');
     expect(result).toBeTruthy();
   });
 

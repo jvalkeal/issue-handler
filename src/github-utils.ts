@@ -15,27 +15,40 @@ export async function createIssue(
 ) {
   core.info(`Creating issue with labels '${labels}' with title '${title}'`);
   const octokit = github.getOctokit(token);
-  await octokit.request('POST /repos/{owner}/{repo}/issues', {
-    owner: owner,
-    repo: repo,
-    title: title,
-    body: body,
+  await octokit.issues.create({
+    owner,
+    repo,
+    title,
+    body,
     labels: labels || []
   });
+  // await octokit.request('POST /repos/{owner}/{repo}/issues', {
+  //   owner: owner,
+  //   repo: repo,
+  //   title: title,
+  //   body: body,
+  //   labels: labels || []
+  // });
 }
 
 /**
  * Close an GitHub issue.
  */
 export async function closeIssue(token: string, owner: string, repo: string, issue_number: number) {
-  core.debug(`Closing issue ${owner} ${repo} ${issue_number}`);
+  core.info(`Closing issue ${owner} ${repo} ${issue_number}`);
   const octokit = github.getOctokit(token);
-  await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-    owner: owner,
-    repo: repo,
-    issue_number: issue_number,
+  await octokit.issues.update({
+    owner,
+    repo,
+    issue_number,
     state: 'closed'
   });
+  // await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+  //   owner: owner,
+  //   repo: repo,
+  //   issue_number: issue_number,
+  //   state: 'closed'
+  // });
 }
 
 /**

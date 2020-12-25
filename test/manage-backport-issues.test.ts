@@ -9,7 +9,8 @@ import {
   CONTEXT_LABELED_ISSUE_FAST_2,
   CONTEXT_LABELED_ISSUE_FAST_3,
   CONTEXT_LABELED_ISSUE_SLOW_1,
-  CONTEXT_LABELED_ISSUE_SLOW_2
+  CONTEXT_LABELED_ISSUE_SLOW_2,
+  CONTEXT_UNLABELED_ISSUE
 } from './mock-data';
 
 describe('manage-backport-issues tests', () => {
@@ -43,6 +44,12 @@ describe('manage-backport-issues tests', () => {
     title: 'fake title',
     number: 1
   };
+  const EC_UNLABELED: ExpressionContext = {
+    context: CONTEXT_UNLABELED_ISSUE,
+    body: 'fake body',
+    title: 'fake title',
+    number: 1
+  };
 
   beforeEach(() => {
     nock.cleanAll();
@@ -62,7 +69,6 @@ describe('manage-backport-issues tests', () => {
       whenLabels: "labelsContains(['for/backport'])",
       fromLabels: "labeledStartsWith(['branch/'])",
       additionalLabels: "'fakelabel'",
-      title: 'title',
       body: "'Backport #' + number"
     };
 
@@ -78,8 +84,8 @@ describe('manage-backport-issues tests', () => {
       .get('/search/issues')
       .query(obj => {
         return (
-          obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1:fake title in:title' ||
-          obj.q === 'repo:owner/repo is:open label:branch/2.0.x Backport#1:fake title in:title'
+          obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1: fake title in:title' ||
+          obj.q === 'repo:owner/repo is:open label:branch/2.0.x Backport#1: fake title in:title'
         );
       })
       .reply(200, { items: [] });
@@ -88,7 +94,7 @@ describe('manage-backport-issues tests', () => {
       .post('/repos/owner/repo/issues', body => {
         return (
           lodash.isMatch(body, {
-            title: 'Backport#1:fake title',
+            title: 'Backport#1: fake title',
             body: 'Backport #1'
           }) &&
           (lodash.isMatch(body, {
@@ -113,7 +119,6 @@ describe('manage-backport-issues tests', () => {
       whenLabels: "labelsContains(['for/backport'])",
       fromLabels: "labeledStartsWith(['branch/'])",
       additionalLabels: "'fakelabel'",
-      title: 'title',
       body: "'Backport #' + number"
     };
 
@@ -127,8 +132,8 @@ describe('manage-backport-issues tests', () => {
       .get('/search/issues')
       .query(obj => {
         return (
-          obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1:fake title in:title' ||
-          obj.q === 'repo:owner/repo is:open label:branch/2.0.x Backport#1:fake title in:title'
+          obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1: fake title in:title' ||
+          obj.q === 'repo:owner/repo is:open label:branch/2.0.x Backport#1: fake title in:title'
         );
       })
       .reply(200, { items: [] });
@@ -137,7 +142,7 @@ describe('manage-backport-issues tests', () => {
       .post('/repos/owner/repo/issues', body => {
         return (
           lodash.isMatch(body, {
-            title: 'Backport#1:fake title',
+            title: 'Backport#1: fake title',
             body: 'Backport #1'
           }) &&
           (lodash.isMatch(body, {
@@ -153,5 +158,37 @@ describe('manage-backport-issues tests', () => {
 
     await handleManageBackportIssues(action, jexl1, EC_SLOW_1, 'fake');
     await handleManageBackportIssues(action, jexl2, EC_SLOW_2, 'fake');
+  });
+
+  it('closes one issue when unlabeled', async () => {
+    const action: ManageBackportIssues = {
+      whenUnlabeled: "labeledStartsWith(['branch/'])",
+      whenLabels: "labelsContains(['for/backport'])",
+      fromLabels: "labeledStartsWith(['branch/'])",
+      additionalLabels: "'fakelabel'",
+      body: "'Backport #' + number"
+    };
+
+    const jexl1 = new Jexl();
+    addJexlFunctions(jexl1, 'token', CONTEXT_UNLABELED_ISSUE);
+
+    nock('https://api.github.com')
+      .persist()
+      .get('/search/issues')
+      .query(obj => {
+        return obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1: fake title in:title';
+      })
+      .reply(200, { items: [{ number: 1 }] });
+
+    nock('https://api.github.com')
+      .patch('/repos/owner/repo/issues/1', body => {
+        return lodash.isMatch(body, {
+          state: 'closed'
+        });
+      })
+      .times(1)
+      .reply(200);
+
+    await handleManageBackportIssues(action, jexl1, EC_UNLABELED, 'fake');
   });
 });

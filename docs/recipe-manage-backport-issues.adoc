@@ -1,16 +1,24 @@
 # Manage Backport Issues
 
-This recipe is meant for a particular case where you manage issue backports
-via issue. Needs to have specific GH label setup with issues and works like
-this:
+This recipe is meant for a particular opinionated case where you manage issue
+backports via issue labels. Essentially this use case would be:
+
+- You have an issue which is i.e. created for main branch
+- It should then backported to maintenance branches `1.0.x`
+  and `1.1.x`
+- Your labels structure should have a lable which marks and issue
+  for potential backport like `for/backport` and then other labels
+  like `branch/1.0.x` and `branch/1.1.x`.
+- You mark this main issue with all these labels and then
+  action automatically created a new issues and setup new labels.
+
+Needs to have specific GH label setup with issues and works like this:
 
 - Having label `for/workflow` meant to backport issues.
 - Having labels `branch/xxx` which will be related to backport issues.
-- When to enable this recipe with issue labeled name.
-- When to enable this recipe with issue label.
 - Choose from which labels a new issues will be created.
+- Choose from which labels an existing issues will be closed.
 - Pick additional labels for new issue.
-- Pick name for new issue.
 - Pick body for new issue.
 
 [source,yaml]
@@ -22,10 +30,10 @@ config: >
         "name": "Create backport issues when labeled",
         "type": "manageBackportIssues",
         "whenLabeled": "labeledStartsWith(['branch/])",
+        "whenUnlabeled": "labeledStartsWith(['branch/])",
         "whenLabels": "labelsContains(['for/backport'])",
         "fromLabels": "labeledStartsWith(['branch/])",
         "additionalLabels": "['type/backport']",
-        "title": "title",
         "body": "'Backport #' + number"
       }
     ]

@@ -4,18 +4,18 @@ import { Jexl } from 'jexl';
 import { ExpressionContext } from './interfaces';
 import { evaluateAndLog, isResultTruthy, resultAsStringArray } from './jexl-utils';
 import { isAction, isEvent } from './context-utils';
-import { createIssue, findIssuesWithLabels } from './github-utils';
+import { closeIssue, createIssue, findIssuesWithLabels } from './github-utils';
 
 /**
  * Type of manageBackportIssues logic.
  */
 export interface ManageBackportIssues {
-  whenLabeled: string;
+  whenLabeled?: string;
+  whenUnlabeled?: string;
   whenLabels: string;
   fromLabels: string;
-  additionalLabels: string;
-  title: string;
-  body: string;
+  additionalLabels?: string;
+  body?: string;
 }
 
 /**
@@ -31,50 +31,38 @@ export async function handleManageBackportIssues(
   const owner = expressionContext.context.repo.owner;
   const repo = expressionContext.context.repo.repo;
   const issueNumber = expressionContext.context.issue.number;
+  const issueTitle = expressionContext.title;
 
-  // we only do something when issue is labeled, for now
-  if (!isEvent(expressionContext.context, 'issues') || !isAction(expressionContext.context, 'labeled')) {
+  // only handle issues
+  if (!isEvent(expressionContext.context, 'issues')) {
     return;
   }
 
-  const whenLabeled = isResultTruthy(await evaluateAndLog(jexl, recipe.whenLabeled, expressionContext));
+  const title = `Backport#${issueNumber}: ${issueTitle}`;
   const whenLabels = isResultTruthy(await evaluateAndLog(jexl, recipe.whenLabels, expressionContext));
   const fromLabels = resultAsStringArray(await evaluateAndLog(jexl, recipe.fromLabels, expressionContext));
-  const additionalLabels = resultAsStringArray(await evaluateAndLog(jexl, recipe.additionalLabels, expressionContext));
-  const title = await evaluateAndLog(jexl, recipe.title, expressionContext);
-  const body = await evaluateAndLog(jexl, recipe.body, expressionContext);
 
-  if (whenLabeled && whenLabels) {
-    await findThenCreate(token, owner, repo, fromLabels, additionalLabels, title, body, issueNumber);
+  if (isAction(expressionContext.context, 'labeled') && recipe.whenLabeled) {
+    const whenLabeled = isResultTruthy(await evaluateAndLog(jexl, recipe.whenLabeled, expressionContext));
+    let additionalLabels: string[] = [];
+    if (recipe.additionalLabels) {
+      additionalLabels = resultAsStringArray(await evaluateAndLog(jexl, recipe.additionalLabels, expressionContext));
+    }
+    let body = '';
+    if (recipe.body) {
+      body = await evaluateAndLog(jexl, recipe.body, expressionContext);
+    }
+    if (whenLabeled && whenLabels) {
+      await findThenCreate(token, owner, repo, fromLabels, additionalLabels, title, body);
+    }
   }
 
-  // const evalWhenLabeled = await evaluateAndLog(jexl, recipe.whenLabeled, expressionContext);
-  // const evalFromLabels = await evaluateAndLog(jexl, recipe.fromLabels, expressionContext);
-  // const evalAdditionalLabels = await evaluateAndLog(jexl, recipe.additionalLabels, expressionContext);
-
-  // const usedWhenLabeled = resultAsStringArray(evalWhenLabeled);
-  // const usedFromLabels = resultAsStringArray(evalFromLabels);
-  // const usedAdditionalLabels = resultAsStringArray(evalAdditionalLabels);
-  // const usedTitle = await evaluateAndLog(jexl, recipe.title, expressionContext);
-  // const usedBody = await evaluateAndLog(jexl, recipe.body, expressionContext);
-
-  // const xor = (left: boolean, right: boolean ) => ( left || right ) && !( left && right );
-
-  // if (containsLabeled(expressionContext.context, usedWhenLabeled) || containsAnyLabel(expressionContext.context, usedWhenLabeled)) {
-  // if (xor(containsLabeled(expressionContext.context, usedWhenLabeled), containsAnyLabel(expressionContext.context, usedWhenLabeled))) {
-  //   for (const l of usedFromLabels) {
-  //     const issues = await findIssuesWithLabels(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, [l]);
-  //     if (issues.length == 0) {
-  //       const usedAdditionalLabelsX = [...usedAdditionalLabels, l];
-  //       await createIssue(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, usedBody, usedAdditionalLabelsX);
-  //     }
-  //   }
-  // }
-  // if (containsLabeled(expressionContext.context, usedWhenLabeled) && containsAnyLabel(expressionContext.context, usedWhenLabeled)) {
-  //   await findThenCreate(token, owner, repo, usedFromLabels, usedAdditionalLabels, usedTitle, usedBody, issueNumber);
-  // } else if (!containsLabeled(expressionContext.context, usedWhenLabeled) && containsAnyLabel(expressionContext.context, usedWhenLabeled)) {
-  //   await findThenCreate(token, owner, repo, usedFromLabels, usedAdditionalLabels, usedTitle, usedBody, issueNumber);
-  // }
+  if (isAction(expressionContext.context, 'unlabeled') && recipe.whenUnlabeled) {
+    const whenUnlabeled = isResultTruthy(await evaluateAndLog(jexl, recipe.whenUnlabeled, expressionContext));
+    if (whenUnlabeled && whenLabels) {
+      await findThenClose(token, owner, repo, fromLabels, title);
+    }
+  }
 }
 
 async function findThenCreate(
@@ -84,14 +72,29 @@ async function findThenCreate(
   usedFromLabels: string[],
   usedAdditionalLabels: string[],
   usedTitle: string,
-  usedBody: string,
-  issueNumber: number
+  usedBody: string
 ): Promise<void> {
   for (const l of usedFromLabels) {
-    const issues = await findIssuesWithLabels(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, [l]);
+    const issues = await findIssuesWithLabels(token, owner, repo, usedTitle, [l]);
     if (issues.length == 0) {
-      const usedAdditionalLabelsX = [...usedAdditionalLabels, l];
-      await createIssue(token, owner, repo, `Backport#${issueNumber}:${usedTitle}`, usedBody, usedAdditionalLabelsX);
+      await createIssue(token, owner, repo, usedTitle, usedBody, [...usedAdditionalLabels, l]);
+    }
+  }
+}
+
+async function findThenClose(
+  token: string,
+  owner: string,
+  repo: string,
+  labels: string[],
+  title: string
+): Promise<void> {
+  for (const l of labels) {
+    const issues = await findIssuesWithLabels(token, owner, repo, title, [l]);
+    if (issues.length > 0) {
+      for (const n of issues) {
+        await closeIssue(token, owner, repo, n);
+      }
     }
   }
 }

@@ -60,27 +60,9 @@ export const ISSUE_UNLABELED_JSON = `
         "default": false,
         "description": "Belongs to machine core",
         "id": 2593616617,
-        "name": "area/core",
+        "name": "for/backport",
         "node_id": "MDU6TGFiZWwyNTkzNjE2NjE3",
-        "url": "https://api.github.com/repos/fakeowner/fakerepo/labels/area/core"
-      },
-      {
-        "color": "F9D0C4",
-        "default": false,
-        "description": "Belongs to documentation",
-        "id": 2593616775,
-        "name": "area/documentation",
-        "node_id": "MDU6TGFiZWwyNTkzNjE2Nzc1",
-        "url": "https://api.github.com/repos/fakeowner/fakerepo/labels/area/documentation"
-      },
-      {
-        "color": "C2E0C6",
-        "default": false,
-        "description": "Mark backport for maintenance branch",
-        "id": 2593565543,
-        "name": "backport/2.4.x",
-        "node_id": "MDU6TGFiZWwyNTkzNTY1NTQz",
-        "url": "https://api.github.com/repos/fakeowner/fakerepo/labels/backport/2.4.x"
+        "url": "https://api.github.com/repos/fakeowner/fakerepo/labels/for/backport"
       }
     ],
     "labels_url": "https://api.github.com/repos/fakeowner/fakerepo/issues/5/labels{/name}",
@@ -118,12 +100,12 @@ export const ISSUE_UNLABELED_JSON = `
   "label": {
     "color": "F9D0C4",
     "default": false,
-    "description": "Belongs to persistense feature",
-    "id": 2593616772,
-    "name": "area/persistense",
-    "node_id": "MDU6TGFiZWwyNTkzNjE2Nzcy",
-    "url": "https://api.github.com/repos/fakeowner/fakerepo/labels/area/persistense"
-  },
+    "description": "Belongs to documentation",
+    "id": 2593616775,
+    "name": "branch/1.0.x",
+    "node_id": "MDU6TGFiZWwyNTkzNjE2Nzc1",
+    "url": "https://api.github.com/repos/fakeowner/fakerepo/labels/branch/1.0.x"
+},
   "repository": {
     "archive_url": "https://api.github.com/repos/fakeowner/fakerepo/{archive_format}{/ref}",
     "archived": false,
