@@ -129,10 +129,10 @@ export declare class Jexl {
  * evaluating basic to complex expression strings, combined with advanced
  * xpath-like drilldown into native Javascript objects.
  */
-declare class BuildableJexl extends Jexl {
-    Jexl: { new(): Jexl };
-}
+// declare class BuildableJexl extends Jexl {
+//     Jexl: { new(): Jexl };
+// }
 
-declare const exportJexl: BuildableJexl;
+// declare const exportJexl: BuildableJexl;
 
-export = exportJexl;
+// export = exportJexl;
