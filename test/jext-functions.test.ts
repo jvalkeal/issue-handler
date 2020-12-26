@@ -9,15 +9,21 @@ describe('jexl-functions tests', () => {
     jexl = new Jexl();
   });
 
-  it('containsLabels returns true if label match', async () => {
+  it('labelsContainsAll returns true if label match', async () => {
     addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE);
-    const result: boolean = await jexl.eval('containsLabels(["for/backport"])');
+    let result: boolean = await jexl.eval('labelsContainsAll(["for/backport"])');
+    expect(result).toBeTruthy();
+    result = await jexl.eval('labelsContainsAll("for/backport")');
     expect(result).toBeTruthy();
   });
 
-  it('containsLabels returns false if no label match', async () => {
+  it('labelsContainsAll returns false if no label match', async () => {
     addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE);
-    const result: boolean = await jexl.eval('containsLabels(["nolabel"])');
+    let result: boolean = await jexl.eval('labelsContainsAll(["nolabel"])');
+    expect(result).toBeFalsy();
+    result = await jexl.eval('labelsContainsAll("nolabel")');
+    expect(result).toBeFalsy();
+    result = await jexl.eval('labelsContainsAll(["nolabel", "for/backport"])');
     expect(result).toBeFalsy();
   });
 

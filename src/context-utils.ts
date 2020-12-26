@@ -1,10 +1,17 @@
 import { Context } from '@actions/github/lib/context';
 
-export function containsLabels(githubContext: Context, labels: string[]): boolean {
+/**
+ * Checks if issue contains all given labels.
+ *
+ * @param labels Labels to check, can be string or string[]
+ * @returns boolean indicating if all labels existed
+ */
+export function containsLabels(githubContext: Context, labels: string | string[]): boolean {
   const payloadLabelObjects = githubContext.payload.issue?.labels as { name: string }[];
   if (payloadLabelObjects) {
+    const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
     const existingLabels = payloadLabelObjects.map(l => l.name);
-    const check = labels.every(el => {
+    const check = labelsToCheck.every(el => {
       return existingLabels.indexOf(el) !== -1;
     });
     return check;

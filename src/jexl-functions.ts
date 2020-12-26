@@ -17,11 +17,13 @@ import {
  * Add all supported jexl functions.
  */
 export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Context): void {
-  jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
-  jexl.addFunction('containsLabels', containsLabelsFunction(githubContext));
-  jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
+  // labels
+  jexl.addFunction('labelsContainsAll', labelsContainsAllFunction(githubContext));
   jexl.addFunction('labelsStartsWith', labelsStartsWithFunction(githubContext));
   jexl.addFunction('labelsContains', labelsContainsFunction(githubContext));
+
+  jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
+  jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
   jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
   jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
   jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
@@ -33,26 +35,17 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
 }
 
 /**
- * Creates a function which creates an issue with given title and body.
+ * Function which checks if given labels are present in a payload's issue.
  */
-function createIssueFunction(token: string, githubContext: Context): FunctionFunction {
-  return async (title: string, body: string) => {
-    await createIssue(token, githubContext.repo.owner, githubContext.repo.repo, title, body);
-  };
-}
-
-/**
- * Creates a new function which checks if given labels are present in a payload's issue.
- */
-function containsLabelsFunction(githubContext: Context): FunctionFunction {
-  return (labels: string[]) => {
+function labelsContainsAllFunction(githubContext: Context): FunctionFunction {
+  return (labels: string | string[]) => {
     return containsLabels(githubContext, labels);
   };
 }
 
-function labeledStartsWithFunction(githubContext: Context): FunctionFunction {
+function labelsStartsWithFunction(githubContext: Context): FunctionFunction {
   return (labels: string[]) => {
-    return labeledStartsWith(githubContext, labels);
+    return getLabelsStartsWith(githubContext, labels);
   };
 }
 
@@ -62,11 +55,21 @@ function labelsContainsFunction(githubContext: Context): FunctionFunction {
   };
 }
 
-function labelsStartsWithFunction(githubContext: Context): FunctionFunction {
-  return (labels: string[]) => {
-    return getLabelsStartsWith(githubContext, labels);
+/**
+ * Creates a function which creates an issue with given title and body.
+ */
+function createIssueFunction(token: string, githubContext: Context): FunctionFunction {
+  return async (title: string, body: string) => {
+    await createIssue(token, githubContext.repo.owner, githubContext.repo.repo, title, body);
   };
 }
+
+function labeledStartsWithFunction(githubContext: Context): FunctionFunction {
+  return (labels: string[]) => {
+    return labeledStartsWith(githubContext, labels);
+  };
+}
+
 
 /**
  * Creates a function checking if label has been removed.

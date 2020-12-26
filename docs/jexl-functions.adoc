@@ -1,0 +1,27 @@
+# JEXL Functions
+
+## labelsContainsAll
+
+### Summary
+
+Checks if issue contains all given labels.
+
+----
+labelsContainsAll('label')
+labelsContainsAll(['label1', 'label2'])
+----
+
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|labels
+|Labels to check, can be string or string[]
+|===
+
+### Return Value
+
+boolean indicating if all labels exists
