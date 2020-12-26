@@ -1,6 +1,7 @@
 import { Jexl } from 'jexl';
 import { addJexlFunctions } from '../src/jexl-functions';
 import { CONTEXT_UNLABELED_ISSUE } from './mock-data';
+import * as githubUtils from '../src/github-utils';
 
 let jexl: Jexl;
 
@@ -67,5 +68,27 @@ describe('jexl-functions tests', () => {
     addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE);
     const result: boolean = await jexl.eval('hasLabels(["area/core"])');
     expect(result).toBeTruthy();
+  });
+
+  it('labelIssue calls with correct arguments from array', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE);
+    const spy = jest
+      .spyOn(githubUtils, 'addLabelsToIssue')
+      .mockImplementation((token: string, owner: string, repo: string, issue_number: number, labels: string[]) => {
+        return Promise.resolve();
+      });
+    await jexl.eval('labelIssue(["area/core"])');
+    expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['area/core']);
+  });
+
+  it('labelIssue calls with correct arguments from string', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE);
+    const spy = jest
+      .spyOn(githubUtils, 'addLabelsToIssue')
+      .mockImplementation((token: string, owner: string, repo: string, issue_number: number, labels: string[]) => {
+        return Promise.resolve();
+      });
+    await jexl.eval('labelIssue("area/core")');
+    expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['area/core']);
   });
 });

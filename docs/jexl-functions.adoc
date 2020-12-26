@@ -3,6 +3,7 @@
 - <<jexl-functions-labelsContainsAll>>
 - <<jexl-functions-labelsContainsAny>>
 - <<jexl-functions-hasLabels>>
+- <<jexl-functions-labelIssue>>
 - <<jexl-functions-isEvent>>
 - <<jexl-functions-isAction>>
 
@@ -98,6 +99,32 @@ isEvent('issues')
 ### Return Value
 
 boolean indicating if event matches
+
+[[jexl-functions-labelIssue]]
+## labelIssue
+
+### Summary
+
+Adds labels to an issue
+
+----
+labelIssue('label')
+labelIssue(['label1', 'label2'])
+----
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|labels
+|Labels to add, can be string or string[]
+|===
+
+### Return Value
+
+void when returned
 
 [[jexl-functions-isAction]]
 ## isAction

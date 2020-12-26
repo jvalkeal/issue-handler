@@ -26,6 +26,9 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
   // labeled
   jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
 
+  // issue
+  jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+
   // generic
   jexl.addFunction('isEvent', isEventFunction(githubContext));
   jexl.addFunction('isAction', isActionFunction(githubContext));
@@ -35,7 +38,6 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
   jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
   jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
   jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
-  jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
 }
 
 /**
@@ -155,13 +157,14 @@ function hasLabelsFunction(githubContext: Context): FunctionFunction {
  * Creates a function adding label to an issue.
  */
 function labelIssueFunction(token: string, githubContext: Context): FunctionFunction {
-  return async (labels: string[]) => {
+  return async (labels: string | string[]) => {
+    const labelsToUse = typeof labels === 'string' ? [labels] : labels;
     await addLabelsToIssue(
       token,
       githubContext.repo.owner,
       githubContext.repo.repo,
       githubContext.issue.number,
-      labels
+      labelsToUse
     );
   };
 }
