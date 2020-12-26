@@ -25,7 +25,8 @@ export async function handleIssue(token: string, config: string): Promise<void> 
   addJexlFunctions(jexl, token, github.context);
 
   for (const recipe of configs.recipes) {
-    core.info(`Processing recipe '${recipe.name}' with type '${recipe.type}'`);
+    const name = recipe.name || 'unnamed';
+    core.info(`Processing recipe '${name}' with type '${recipe.type}'`);
     switch (recipe.type) {
       case RecipeType.ifThen:
         await handleIfThen(recipe, jexl, expressionContext);
