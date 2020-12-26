@@ -1,5 +1,12 @@
 # JEXL Functions
 
+- <<jexl-functions-labelsContainsAll>>
+- <<jexl-functions-labelsContainsAny>>
+- <<jexl-functions-hasLabels>>
+- <<jexl-functions-isEvent>>
+- <<jexl-functions-isAction>>
+
+[[jexl-functions-labelsContainsAll]]
 ## labelsContainsAll
 
 ### Summary
@@ -10,7 +17,6 @@ Checks if issue contains all given labels.
 labelsContainsAll('label')
 labelsContainsAll(['label1', 'label2'])
 ----
-
 
 ### Parameters
 
@@ -26,6 +32,7 @@ labelsContainsAll(['label1', 'label2'])
 
 boolean indicating if all labels exists
 
+[[jexl-functions-labelsContainsAny]]
 ## labelsContainsAny
 
 ### Summary
@@ -51,3 +58,68 @@ labelsContainsAny(['label1', 'label2'])
 ### Return Value
 
 boolean indicating if any labels exists
+
+[[jexl-functions-hasLabels]]
+## hasLabels
+
+### Summary
+
+Checks if issue contains labels.
+
+----
+hasLabels()
+----
+
+### Return Value
+
+boolean indicating if labels exists
+
+[[jexl-functions-isEvent]]
+## isEvent
+
+### Summary
+
+Checks if actions has a given event
+
+----
+isEvent('issues')
+----
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|event
+|Event to check, can be string
+|===
+
+### Return Value
+
+boolean indicating if event matches
+
+[[jexl-functions-isAction]]
+## isAction
+
+### Summary
+
+Checks if actions has a given event type
+
+----
+isAction('labeled')
+----
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|event
+|Action type to check, can be string
+|===
+
+### Return Value
+
+boolean indicating if event type matches

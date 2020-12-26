@@ -21,16 +21,20 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
   jexl.addFunction('labelsContainsAll', labelsContainsAllFunction(githubContext));
   jexl.addFunction('labelsContainsAny', labelsContainsAnyFunction(githubContext));
   jexl.addFunction('labelsStartsWith', labelsStartsWithFunction(githubContext));
+  jexl.addFunction('hasLabels', hasLabelsFunction(githubContext));
 
-  jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
+  // labeled
   jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
-  jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
-  jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
-  jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
+
+  // generic
   jexl.addFunction('isEvent', isEventFunction(githubContext));
   jexl.addFunction('isAction', isActionFunction(githubContext));
   jexl.addFunction('isMilestone', isMilestoneFunction(githubContext));
-  jexl.addFunction('hasLabels', hasLabelsFunction(githubContext));
+
+  jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
+  jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
+  jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
+  jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
   jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
 }
 
