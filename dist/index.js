@@ -1968,12 +1968,19 @@ var RecipeType;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAction = exports.isEvent = exports.getLabelsStartsWith = exports.labeledStartsWith = exports.containsLabeled = exports.isLabeled = exports.containsAnyLabel = exports.containsLabels = void 0;
+/**
+ * Checks if issue contains all given labels.
+ *
+ * @param labels Labels to check, can be string or string[]
+ * @returns boolean indicating if all labels existed
+ */
 function containsLabels(githubContext, labels) {
     var _a;
     const payloadLabelObjects = (_a = githubContext.payload.issue) === null || _a === void 0 ? void 0 : _a.labels;
     if (payloadLabelObjects) {
+        const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
         const existingLabels = payloadLabelObjects.map(l => l.name);
-        const check = labels.every(el => {
+        const check = labelsToCheck.every(el => {
             return existingLabels.indexOf(el) !== -1;
         });
         return check;
@@ -1985,8 +1992,9 @@ function containsAnyLabel(githubContext, labels) {
     var _a;
     const payloadLabelObjects = (_a = githubContext.payload.issue) === null || _a === void 0 ? void 0 : _a.labels;
     if (payloadLabelObjects) {
+        const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
         const existingLabels = payloadLabelObjects.map(l => l.name);
-        return existingLabels.some(l => labels.indexOf(l) !== -1);
+        return existingLabels.some(l => labelsToCheck.indexOf(l) !== -1);
     }
     return false;
 }
@@ -6720,21 +6728,43 @@ const context_utils_1 = __webpack_require__(269);
  * Add all supported jexl functions.
  */
 function addJexlFunctions(jexl, token, githubContext) {
-    jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
-    jexl.addFunction('containsLabels', containsLabelsFunction(githubContext));
-    jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
+    // labels
+    jexl.addFunction('labelsContainsAll', labelsContainsAllFunction(githubContext));
+    jexl.addFunction('labelsContainsAny', labelsContainsAnyFunction(githubContext));
     jexl.addFunction('labelsStartsWith', labelsStartsWithFunction(githubContext));
-    jexl.addFunction('labelsContains', labelsContainsFunction(githubContext));
-    jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
-    jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
-    jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
+    jexl.addFunction('hasLabels', hasLabelsFunction(githubContext));
+    // labeled
+    jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
+    // issue
+    jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+    // generic
     jexl.addFunction('isEvent', isEventFunction(githubContext));
     jexl.addFunction('isAction', isActionFunction(githubContext));
     jexl.addFunction('isMilestone', isMilestoneFunction(githubContext));
-    jexl.addFunction('hasLabels', hasLabelsFunction(githubContext));
-    jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+    jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
+    jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
+    jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
+    jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
 }
 exports.addJexlFunctions = addJexlFunctions;
+/**
+ * Function which checks if given labels are present in a payload's issue.
+ */
+function labelsContainsAllFunction(githubContext) {
+    return (labels) => {
+        return context_utils_1.containsLabels(githubContext, labels);
+    };
+}
+function labelsContainsAnyFunction(githubContext) {
+    return (labels) => {
+        return context_utils_1.containsAnyLabel(githubContext, labels);
+    };
+}
+function labelsStartsWithFunction(githubContext) {
+    return (labels) => {
+        return context_utils_1.getLabelsStartsWith(githubContext, labels);
+    };
+}
 /**
  * Creates a function which creates an issue with given title and body.
  */
@@ -6743,27 +6773,9 @@ function createIssueFunction(token, githubContext) {
         yield github_utils_1.createIssue(token, githubContext.repo.owner, githubContext.repo.repo, title, body);
     });
 }
-/**
- * Creates a new function which checks if given labels are present in a payload's issue.
- */
-function containsLabelsFunction(githubContext) {
-    return (labels) => {
-        return context_utils_1.containsLabels(githubContext, labels);
-    };
-}
 function labeledStartsWithFunction(githubContext) {
     return (labels) => {
         return context_utils_1.labeledStartsWith(githubContext, labels);
-    };
-}
-function labelsContainsFunction(githubContext) {
-    return (labels) => {
-        return context_utils_1.containsAnyLabel(githubContext, labels);
-    };
-}
-function labelsStartsWithFunction(githubContext) {
-    return (labels) => {
-        return context_utils_1.getLabelsStartsWith(githubContext, labels);
     };
 }
 /**
@@ -6843,7 +6855,8 @@ function hasLabelsFunction(githubContext) {
  */
 function labelIssueFunction(token, githubContext) {
     return (labels) => __awaiter(this, void 0, void 0, function* () {
-        yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labels);
+        const labelsToUse = typeof labels === 'string' ? [labels] : labels;
+        yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
     });
 }
 
