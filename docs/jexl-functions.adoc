@@ -25,3 +25,29 @@ labelsContainsAll(['label1', 'label2'])
 ### Return Value
 
 boolean indicating if all labels exists
+
+## labelsContainsAny
+
+### Summary
+
+Checks if issue contains any given labels.
+
+----
+labelsContainsAny('label')
+labelsContainsAny(['label1', 'label2'])
+----
+
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|labels
+|Labels to check, can be string or string[]
+|===
+
+### Return Value
+
+boolean indicating if any labels exists

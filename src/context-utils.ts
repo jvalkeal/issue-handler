@@ -22,8 +22,9 @@ export function containsLabels(githubContext: Context, labels: string | string[]
 export function containsAnyLabel(githubContext: Context, labels: string[]): boolean {
   const payloadLabelObjects = githubContext.payload.issue?.labels as { name: string }[];
   if (payloadLabelObjects) {
+    const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
     const existingLabels = payloadLabelObjects.map(l => l.name);
-    return existingLabels.some(l => labels.indexOf(l) !== -1);
+    return existingLabels.some(l => labelsToCheck.indexOf(l) !== -1);
   }
   return false;
 }

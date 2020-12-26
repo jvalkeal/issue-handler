@@ -19,8 +19,8 @@ import {
 export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Context): void {
   // labels
   jexl.addFunction('labelsContainsAll', labelsContainsAllFunction(githubContext));
+  jexl.addFunction('labelsContainsAny', labelsContainsAnyFunction(githubContext));
   jexl.addFunction('labelsStartsWith', labelsStartsWithFunction(githubContext));
-  jexl.addFunction('labelsContains', labelsContainsFunction(githubContext));
 
   jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
   jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
@@ -43,15 +43,15 @@ function labelsContainsAllFunction(githubContext: Context): FunctionFunction {
   };
 }
 
-function labelsStartsWithFunction(githubContext: Context): FunctionFunction {
+function labelsContainsAnyFunction(githubContext: Context): FunctionFunction {
   return (labels: string[]) => {
-    return getLabelsStartsWith(githubContext, labels);
+    return containsAnyLabel(githubContext, labels);
   };
 }
 
-function labelsContainsFunction(githubContext: Context): FunctionFunction {
+function labelsStartsWithFunction(githubContext: Context): FunctionFunction {
   return (labels: string[]) => {
-    return containsAnyLabel(githubContext, labels);
+    return getLabelsStartsWith(githubContext, labels);
   };
 }
 
@@ -69,7 +69,6 @@ function labeledStartsWithFunction(githubContext: Context): FunctionFunction {
     return labeledStartsWith(githubContext, labels);
   };
 }
-
 
 /**
  * Creates a function checking if label has been removed.
