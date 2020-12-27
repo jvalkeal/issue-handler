@@ -1845,7 +1845,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -2101,7 +2101,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -2318,7 +2318,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -2352,7 +2352,7 @@ function handleManageBackportIssues(recipe, jexl, expressionContext, token) {
         if (!context_utils_1.isEvent(expressionContext.context, 'issues')) {
             return;
         }
-        const title = `Backport#${issueNumber}: ${issueTitle}`;
+        const title = `backport(${issueNumber}): ${issueTitle}`;
         const whenLabels = jexl_utils_1.isResultTruthy(yield jexl_utils_1.evaluateAndLog(jexl, recipe.whenLabels, expressionContext));
         const fromLabels = jexl_utils_1.resultAsStringArray(yield jexl_utils_1.evaluateAndLog(jexl, recipe.fromLabels, expressionContext));
         if (context_utils_1.isAction(expressionContext.context, 'labeled') && recipe.whenLabeled) {
@@ -6705,7 +6705,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -8579,7 +8579,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -8671,7 +8671,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -8703,13 +8703,6 @@ function createIssue(token, owner, repo, title, body, labels) {
             body,
             labels: labels || []
         });
-        // await octokit.request('POST /repos/{owner}/{repo}/issues', {
-        //   owner: owner,
-        //   repo: repo,
-        //   title: title,
-        //   body: body,
-        //   labels: labels || []
-        // });
     });
 }
 exports.createIssue = createIssue;
@@ -8726,12 +8719,6 @@ function closeIssue(token, owner, repo, issue_number) {
             issue_number,
             state: 'closed'
         });
-        // await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-        //   owner: owner,
-        //   repo: repo,
-        //   issue_number: issue_number,
-        //   state: 'closed'
-        // });
     });
 }
 exports.closeIssue = closeIssue;
@@ -8835,7 +8822,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -8876,7 +8863,8 @@ function handleIssue(token, config) {
         const jexl = new jexl_1.Jexl();
         jexl_functions_1.addJexlFunctions(jexl, token, github.context);
         for (const recipe of configs.recipes) {
-            core.info(`Processing recipe '${recipe.name}' with type '${recipe.type}'`);
+            const name = recipe.name || 'unnamed';
+            core.info(`Processing recipe '${name}' with type '${recipe.type}'`);
             switch (recipe.type) {
                 case interfaces_1.RecipeType.ifThen:
                     yield if_then_1.handleIfThen(recipe, jexl, expressionContext);
