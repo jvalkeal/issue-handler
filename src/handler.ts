@@ -24,6 +24,14 @@ export async function handleIssue(token: string, config: string): Promise<void> 
   const jexl = new Jexl();
   addJexlFunctions(jexl, token, github.context);
 
+  // validate
+  for (const recipe of configs.recipes) {
+    const recipeType: RecipeType = RecipeType[recipe.type];
+    if (recipeType === undefined) {
+      throw new Error(`Invalid recipe type '${recipe.type}'`);
+    }
+  }
+
   for (const recipe of configs.recipes) {
     const name = recipe.name || 'unnamed';
     core.info(`Processing recipe '${name}' with type '${recipe.type}'`);
