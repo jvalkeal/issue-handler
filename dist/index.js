@@ -6746,16 +6746,10 @@ function addJexlFunctions(jexl, token, githubContext, data) {
     jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
     jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
     jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
+    // data structure access
     jexl.addFunction('dataInArray', dataInArrayFunction(data));
 }
 exports.addJexlFunctions = addJexlFunctions;
-function dataInArrayFunction(data) {
-    return (arrayExpression, check) => {
-        const jexl = new jexl_1.Jexl();
-        const arrayData = jexl.evalSync(arrayExpression, data);
-        return arrayData.indexOf(check) > -1;
-    };
-}
 /**
  * Function which checks if given labels are present in a payload's issue.
  */
@@ -6867,6 +6861,13 @@ function labelIssueFunction(token, githubContext) {
         const labelsToUse = typeof labels === 'string' ? [labels] : labels;
         yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
     });
+}
+function dataInArrayFunction(data) {
+    return (arrayExpression, check) => {
+        const jexl = new jexl_1.Jexl();
+        const arrayData = jexl.evalSync(arrayExpression, data);
+        return arrayData.indexOf(check) > -1;
+    };
 }
 
 

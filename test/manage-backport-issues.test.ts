@@ -18,37 +18,49 @@ describe('manage-backport-issues tests', () => {
     context: CONTEXT_LABELED_ISSUE_FAST_1,
     body: 'fake body',
     title: 'fake title',
-    number: 1
+    number: 1,
+    actor: 'actor',
+    data: {}
   };
   const EC_FAST_2: ExpressionContext = {
     context: CONTEXT_LABELED_ISSUE_FAST_2,
     body: 'fake body',
     title: 'fake title',
-    number: 1
+    number: 1,
+    actor: 'actor',
+    data: {}
   };
   const EC_FAST_3: ExpressionContext = {
     context: CONTEXT_LABELED_ISSUE_FAST_3,
     body: 'fake body',
     title: 'fake title',
-    number: 1
+    number: 1,
+    actor: 'actor',
+    data: {}
   };
   const EC_SLOW_1: ExpressionContext = {
     context: CONTEXT_LABELED_ISSUE_SLOW_1,
     body: 'fake body',
     title: 'fake title',
-    number: 1
+    number: 1,
+    actor: 'actor',
+    data: {}
   };
   const EC_SLOW_2: ExpressionContext = {
     context: CONTEXT_LABELED_ISSUE_SLOW_2,
     body: 'fake body',
     title: 'fake title',
-    number: 1
+    number: 1,
+    actor: 'actor',
+    data: {}
   };
   const EC_UNLABELED: ExpressionContext = {
     context: CONTEXT_UNLABELED_ISSUE,
     body: 'fake body',
     title: 'fake title',
-    number: 1
+    number: 1,
+    actor: 'actor',
+    data: {}
   };
 
   beforeEach(() => {
@@ -75,9 +87,9 @@ describe('manage-backport-issues tests', () => {
     const jexl1 = new Jexl();
     const jexl2 = new Jexl();
     const jexl3 = new Jexl();
-    addJexlFunctions(jexl1, 'token', CONTEXT_LABELED_ISSUE_FAST_1);
-    addJexlFunctions(jexl2, 'token', CONTEXT_LABELED_ISSUE_FAST_2);
-    addJexlFunctions(jexl3, 'token', CONTEXT_LABELED_ISSUE_FAST_3);
+    addJexlFunctions(jexl1, 'token', CONTEXT_LABELED_ISSUE_FAST_1, {});
+    addJexlFunctions(jexl2, 'token', CONTEXT_LABELED_ISSUE_FAST_2, {});
+    addJexlFunctions(jexl3, 'token', CONTEXT_LABELED_ISSUE_FAST_3, {});
 
     nock('https://api.github.com')
       .persist()
@@ -124,8 +136,8 @@ describe('manage-backport-issues tests', () => {
 
     const jexl1 = new Jexl();
     const jexl2 = new Jexl();
-    addJexlFunctions(jexl1, 'token', CONTEXT_LABELED_ISSUE_SLOW_1);
-    addJexlFunctions(jexl2, 'token', CONTEXT_LABELED_ISSUE_SLOW_2);
+    addJexlFunctions(jexl1, 'token', CONTEXT_LABELED_ISSUE_SLOW_1, {});
+    addJexlFunctions(jexl2, 'token', CONTEXT_LABELED_ISSUE_SLOW_2, {});
 
     nock('https://api.github.com')
       .persist()
@@ -170,7 +182,7 @@ describe('manage-backport-issues tests', () => {
     };
 
     const jexl1 = new Jexl();
-    addJexlFunctions(jexl1, 'token', CONTEXT_UNLABELED_ISSUE);
+    addJexlFunctions(jexl1, 'token', CONTEXT_UNLABELED_ISSUE, {});
 
     nock('https://api.github.com')
       .persist()

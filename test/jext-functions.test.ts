@@ -7,6 +7,15 @@ import { ExpressionContext } from '../src/interfaces';
 let jexl: Jexl;
 
 describe('jexl-functions tests', () => {
+  const EC_UNLABELED: ExpressionContext = {
+    context: CONTEXT_UNLABELED_ISSUE,
+    body: 'fake body',
+    title: 'fake title',
+    number: 1,
+    actor: 'actor',
+    data: {}
+  };
+
   beforeEach(() => {
     jexl = new Jexl();
   });
@@ -110,10 +119,19 @@ describe('jexl-functions tests', () => {
     expect(match2).toBeFalsy();
   });
 
-  it('dataInArray finds match', async () => {
+  it('dataInArray works correctly', async () => {
     addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, { contributors: ['user1', 'user2'] });
     let result: boolean = await jexl.eval("dataInArray('contributors', 'user1')");
+    expect(result).toBeTruthy();
     result = await jexl.eval("dataInArray('contributors', 'user3')");
     expect(result).toBeFalsy();
+    result = await jexl.eval("dataInArray('contributors', actor)", EC_UNLABELED);
+    expect(result).toBeFalsy();
+  });
+
+  it('dataInArray works correctly with actor', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, { contributors: ['actor', 'user2'] });
+    let result: boolean = await jexl.eval("dataInArray('contributors', actor)", EC_UNLABELED);
+    expect(result).toBeTruthy();
   });
 });

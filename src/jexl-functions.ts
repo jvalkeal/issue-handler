@@ -40,15 +40,8 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
   jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
   jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
 
+  // data structure access
   jexl.addFunction('dataInArray', dataInArrayFunction(data));
-}
-
-function dataInArrayFunction(data: JSONObject): FunctionFunction {
-  return (arrayExpression: string, check: string): boolean => {
-    const jexl = new Jexl();
-    const arrayData = jexl.evalSync(arrayExpression, data) as string[];
-    return arrayData.indexOf(check) > -1;
-  };
 }
 
 /**
@@ -177,5 +170,13 @@ function labelIssueFunction(token: string, githubContext: Context): FunctionFunc
       githubContext.issue.number,
       labelsToUse
     );
+  };
+}
+
+function dataInArrayFunction(data: JSONObject): FunctionFunction {
+  return (arrayExpression: string, check: string): boolean => {
+    const jexl = new Jexl();
+    const arrayData = jexl.evalSync(arrayExpression, data) as string[];
+    return arrayData.indexOf(check) > -1;
   };
 }
