@@ -8869,6 +8869,7 @@ function handleIssue(token, config) {
             title: (_a = github.context.payload.issue) === null || _a === void 0 ? void 0 : _a.title,
             body: ((_b = github.context.payload.issue) === null || _b === void 0 ? void 0 : _b.body) || '',
             number: github.context.issue.number,
+            actor: github.context.actor,
             data
         };
         const jexl = new jexl_1.Jexl();

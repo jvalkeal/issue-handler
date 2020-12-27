@@ -15,6 +15,7 @@ export interface ExpressionContext {
   title: string;
   body: string;
   number: number;
+  actor: string;
   data: JSONObject;
 }
 

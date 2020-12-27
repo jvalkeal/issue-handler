@@ -99,6 +99,7 @@ describe('jexl-functions tests', () => {
       body: 'fake body',
       title: 'fake title',
       number: 1,
+      actor: 'user4',
       data: {
         contributors: ['user1', 'user2']
       }

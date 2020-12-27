@@ -21,6 +21,7 @@ export async function handleIssue(token: string, config: string): Promise<void> 
     title: github.context.payload.issue?.title,
     body: github.context.payload.issue?.body || '',
     number: github.context.issue.number,
+    actor: github.context.actor,
     data
   };
   const jexl = new Jexl();
