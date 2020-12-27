@@ -38,7 +38,7 @@ export async function handleManageBackportIssues(
     return;
   }
 
-  const title = `Backport#${issueNumber}: ${issueTitle}`;
+  const title = `backport(${issueNumber}): ${issueTitle}`;
   const whenLabels = isResultTruthy(await evaluateAndLog(jexl, recipe.whenLabels, expressionContext));
   const fromLabels = resultAsStringArray(await evaluateAndLog(jexl, recipe.fromLabels, expressionContext));
 

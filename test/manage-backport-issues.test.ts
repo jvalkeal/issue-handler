@@ -84,8 +84,8 @@ describe('manage-backport-issues tests', () => {
       .get('/search/issues')
       .query(obj => {
         return (
-          obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1: fake title in:title' ||
-          obj.q === 'repo:owner/repo is:open label:branch/2.0.x Backport#1: fake title in:title'
+          obj.q === 'repo:owner/repo is:open label:branch/1.0.x backport(1): fake title in:title' ||
+          obj.q === 'repo:owner/repo is:open label:branch/2.0.x backport(1): fake title in:title'
         );
       })
       .reply(200, { items: [] });
@@ -94,7 +94,7 @@ describe('manage-backport-issues tests', () => {
       .post('/repos/owner/repo/issues', body => {
         return (
           lodash.isMatch(body, {
-            title: 'Backport#1: fake title',
+            title: 'backport(1): fake title',
             body: 'Backport #1'
           }) &&
           (lodash.isMatch(body, {
@@ -132,8 +132,8 @@ describe('manage-backport-issues tests', () => {
       .get('/search/issues')
       .query(obj => {
         return (
-          obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1: fake title in:title' ||
-          obj.q === 'repo:owner/repo is:open label:branch/2.0.x Backport#1: fake title in:title'
+          obj.q === 'repo:owner/repo is:open label:branch/1.0.x backport(1): fake title in:title' ||
+          obj.q === 'repo:owner/repo is:open label:branch/2.0.x backport(1): fake title in:title'
         );
       })
       .reply(200, { items: [] });
@@ -142,7 +142,7 @@ describe('manage-backport-issues tests', () => {
       .post('/repos/owner/repo/issues', body => {
         return (
           lodash.isMatch(body, {
-            title: 'Backport#1: fake title',
+            title: 'backport(1): fake title',
             body: 'Backport #1'
           }) &&
           (lodash.isMatch(body, {
@@ -176,7 +176,7 @@ describe('manage-backport-issues tests', () => {
       .persist()
       .get('/search/issues')
       .query(obj => {
-        return obj.q === 'repo:owner/repo is:open label:branch/1.0.x Backport#1: fake title in:title';
+        return obj.q === 'repo:owner/repo is:open label:branch/1.0.x backport(1): fake title in:title';
       })
       .reply(200, { items: [{ number: 1 }] });
 
