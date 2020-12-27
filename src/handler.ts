@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { inspect } from 'util';
 import { Jexl } from 'jexl';
-import { ExpressionContext, RecipeType, IssueHandlerConfig } from './interfaces';
+import { ExpressionContext, RecipeType, IssueHandlerConfig, JSONObject } from './interfaces';
 import { addJexlFunctions } from './jexl-functions';
 import { handleIfThen } from './if-then';
 import { handleManageBackportIssues } from './manage-backport-issues';
@@ -15,14 +15,16 @@ export async function handleIssue(token: string, config: string): Promise<void> 
   core.debug(`github context: ${inspect(github.context, true, 10)}`);
   const configs = getHandlerConfigFromJson(config);
 
+  const data: JSONObject = configs.data || {};
   const expressionContext: ExpressionContext = {
     context: github.context,
     title: github.context.payload.issue?.title,
     body: github.context.payload.issue?.body || '',
-    number: github.context.issue.number
+    number: github.context.issue.number,
+    data
   };
   const jexl = new Jexl();
-  addJexlFunctions(jexl, token, github.context);
+  addJexlFunctions(jexl, token, github.context, data);
 
   // validate
   for (const recipe of configs.recipes) {

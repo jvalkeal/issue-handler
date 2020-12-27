@@ -12,11 +12,12 @@ import {
   containsAnyLabel,
   labeledStartsWith
 } from './context-utils';
+import { JSONObject } from './interfaces';
 
 /**
  * Add all supported jexl functions.
  */
-export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Context): void {
+export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Context, data: JSONObject): void {
   // labels
   jexl.addFunction('labelsContainsAll', labelsContainsAllFunction(githubContext));
   jexl.addFunction('labelsContainsAny', labelsContainsAnyFunction(githubContext));
@@ -38,6 +39,16 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
   jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
   jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
   jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
+
+  jexl.addFunction('dataInArray', dataInArrayFunction(data));
+}
+
+function dataInArrayFunction(data: JSONObject): FunctionFunction {
+  return (arrayExpression: string, check: string): boolean => {
+    const jexl = new Jexl();
+    const arrayData = jexl.evalSync(arrayExpression, data) as string[];
+    return arrayData.indexOf(check) > -1;
+  };
 }
 
 /**
