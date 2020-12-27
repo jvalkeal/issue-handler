@@ -4,7 +4,12 @@ In a project new issues comes and goes, some created by project trusted members
 and we don't want to bug then about their issues. For community members outside
 of a team we want to give a label to issues for core team to make sure that
 eventually that new issue will get "triaged", aka handled in terms of doing
-someting about it.
+something about it.
+
+NOTE: This also shows that there doesn't always need to be a real separe
+      recipe baked into an action itself as sometimes generic `ifThen`
+      works just fine.
+
 
 What about if you just create a new recipe to mark new issue, which is
 an event `issues`, has an action type `opened`, don't have any milestones
@@ -19,7 +24,28 @@ config: >
         "name": "Mark new issue to get triaged",
         "type": "ifThen",
         "if": "isEvent('issues') && isAction('opened') && !isMilestone() && !hasLabels()",
-        "then": "labelIssue(['status/need-triage'])"
+        "then": "labelIssue('status/need-triage')"
+      },
+    ]
+  }
+----
+
+If workflow is setup to only run with _opened_ issues and using `data` block,
+then this can be simplified and make it work with team members:
+
+[source,yaml]
+----
+config: >
+  {
+    "data": {
+      "team": ["user1", "user2"]
+    },
+    "recipes": [
+      {
+        "name": "Mark new issue to get triaged",
+        "type": "ifThen",
+        "if": "!dataInArray('team', actor)",
+        "then": "labelIssue('status/need-triage')"
       },
     ]
   }
