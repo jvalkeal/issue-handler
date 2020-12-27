@@ -2,6 +2,11 @@ import { Context } from '@actions/github/lib/context';
 import { IfThen } from './if-then';
 import { ManageBackportIssues } from './manage-backport-issues';
 
+export type JSONPrimitive = string | number | boolean | null;
+export type JSONValue = JSONPrimitive | JSONObject | JSONArray;
+export type JSONObject = { [member: string]: JSONValue };
+export type JSONArray = JSONValue[];
+
 /**
  * Used jexl expression context with evaluation.
  */
@@ -10,6 +15,8 @@ export interface ExpressionContext {
   title: string;
   body: string;
   number: number;
+  actor: string;
+  data: JSONObject;
 }
 
 /**
@@ -17,6 +24,7 @@ export interface ExpressionContext {
  */
 export interface IssueHandlerConfig {
   recipes: Recipe[];
+  data?: JSONObject;
 }
 
 /**

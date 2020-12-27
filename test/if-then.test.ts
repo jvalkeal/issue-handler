@@ -23,7 +23,9 @@ describe('if-then tests', () => {
       context: github.context,
       body: '',
       title: '',
-      number: 1
+      number: 1,
+      actor: 'actor',
+      data: {}
     };
     await handleIfThen(action, jexl, expressionContext);
     expect(called).toBeTruthy();
@@ -42,7 +44,9 @@ describe('if-then tests', () => {
       context: github.context,
       body: '',
       title: '',
-      number: 1
+      number: 1,
+      actor: 'actor',
+      data: {}
     };
     await handleIfThen(action, jexl, expressionContext);
     expect(called).toBeFalsy();
