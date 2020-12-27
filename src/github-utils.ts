@@ -22,13 +22,6 @@ export async function createIssue(
     body,
     labels: labels || []
   });
-  // await octokit.request('POST /repos/{owner}/{repo}/issues', {
-  //   owner: owner,
-  //   repo: repo,
-  //   title: title,
-  //   body: body,
-  //   labels: labels || []
-  // });
 }
 
 /**
@@ -43,12 +36,6 @@ export async function closeIssue(token: string, owner: string, repo: string, iss
     issue_number,
     state: 'closed'
   });
-  // await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-  //   owner: owner,
-  //   repo: repo,
-  //   issue_number: issue_number,
-  //   state: 'closed'
-  // });
 }
 
 /**
