@@ -1845,7 +1845,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -2101,7 +2101,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -2318,7 +2318,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -2352,7 +2352,7 @@ function handleManageBackportIssues(recipe, jexl, expressionContext, token) {
         if (!context_utils_1.isEvent(expressionContext.context, 'issues')) {
             return;
         }
-        const title = `Backport#${issueNumber}: ${issueTitle}`;
+        const title = `backport(${issueNumber}): ${issueTitle}`;
         const whenLabels = jexl_utils_1.isResultTruthy(yield jexl_utils_1.evaluateAndLog(jexl, recipe.whenLabels, expressionContext));
         const fromLabels = jexl_utils_1.resultAsStringArray(yield jexl_utils_1.evaluateAndLog(jexl, recipe.fromLabels, expressionContext));
         if (context_utils_1.isAction(expressionContext.context, 'labeled') && recipe.whenLabeled) {
@@ -6705,7 +6705,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -6722,12 +6722,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.addJexlFunctions = void 0;
 const core = __importStar(__webpack_require__(470));
 const util_1 = __webpack_require__(669);
+const jexl_1 = __webpack_require__(65);
 const github_utils_1 = __webpack_require__(888);
 const context_utils_1 = __webpack_require__(269);
 /**
  * Add all supported jexl functions.
  */
-function addJexlFunctions(jexl, token, githubContext) {
+function addJexlFunctions(jexl, token, githubContext, data) {
     // labels
     jexl.addFunction('labelsContainsAll', labelsContainsAllFunction(githubContext));
     jexl.addFunction('labelsContainsAny', labelsContainsAnyFunction(githubContext));
@@ -6745,6 +6746,8 @@ function addJexlFunctions(jexl, token, githubContext) {
     jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
     jexl.addFunction('closeIssues', closeIssuesFunction(token, githubContext));
     jexl.addFunction('findIssuesByTitle', findIssuesByTitleFunction(token, githubContext));
+    // data structure access
+    jexl.addFunction('dataInArray', dataInArrayFunction(data));
 }
 exports.addJexlFunctions = addJexlFunctions;
 /**
@@ -6858,6 +6861,13 @@ function labelIssueFunction(token, githubContext) {
         const labelsToUse = typeof labels === 'string' ? [labels] : labels;
         yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
     });
+}
+function dataInArrayFunction(data) {
+    return (arrayExpression, check) => {
+        const jexl = new jexl_1.Jexl();
+        const arrayData = jexl.evalSync(arrayExpression, data);
+        return arrayData.indexOf(check) > -1;
+    };
 }
 
 
@@ -8579,7 +8589,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -8671,7 +8681,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -8703,13 +8713,6 @@ function createIssue(token, owner, repo, title, body, labels) {
             body,
             labels: labels || []
         });
-        // await octokit.request('POST /repos/{owner}/{repo}/issues', {
-        //   owner: owner,
-        //   repo: repo,
-        //   title: title,
-        //   body: body,
-        //   labels: labels || []
-        // });
     });
 }
 exports.createIssue = createIssue;
@@ -8726,12 +8729,6 @@ function closeIssue(token, owner, repo, issue_number) {
             issue_number,
             state: 'closed'
         });
-        // await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-        //   owner: owner,
-        //   repo: repo,
-        //   issue_number: issue_number,
-        //   state: 'closed'
-        // });
     });
 }
 exports.closeIssue = closeIssue;
@@ -8835,7 +8832,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -8867,16 +8864,27 @@ function handleIssue(token, config) {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug(`github context: ${util_1.inspect(github.context, true, 10)}`);
         const configs = getHandlerConfigFromJson(config);
+        const data = configs.data || {};
         const expressionContext = {
             context: github.context,
             title: (_a = github.context.payload.issue) === null || _a === void 0 ? void 0 : _a.title,
             body: ((_b = github.context.payload.issue) === null || _b === void 0 ? void 0 : _b.body) || '',
-            number: github.context.issue.number
+            number: github.context.issue.number,
+            actor: github.context.actor,
+            data
         };
         const jexl = new jexl_1.Jexl();
-        jexl_functions_1.addJexlFunctions(jexl, token, github.context);
+        jexl_functions_1.addJexlFunctions(jexl, token, github.context, data);
+        // validate
         for (const recipe of configs.recipes) {
-            core.info(`Processing recipe '${recipe.name}' with type '${recipe.type}'`);
+            const recipeType = interfaces_1.RecipeType[recipe.type];
+            if (recipeType === undefined) {
+                throw new Error(`Invalid recipe type '${recipe.type}'`);
+            }
+        }
+        for (const recipe of configs.recipes) {
+            const name = recipe.name || 'unnamed';
+            core.info(`Processing recipe '${name}' with type '${recipe.type}'`);
             switch (recipe.type) {
                 case interfaces_1.RecipeType.ifThen:
                     yield if_then_1.handleIfThen(recipe, jexl, expressionContext);
