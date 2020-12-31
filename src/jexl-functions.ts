@@ -3,7 +3,7 @@ import { Context } from '@actions/github/lib/context';
 import { inspect } from 'util';
 import { Jexl } from 'jexl';
 import { FunctionFunction } from 'jexl';
-import { createIssue, closeIssue, findIssues, addLabelsToIssue } from './github-utils';
+import { createIssue, closeIssue, findIssues, addLabelsToIssue, removeLabelFromIssue } from './github-utils';
 import {
   containsLabels,
   isEvent,
@@ -29,6 +29,7 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
 
   // issue
   jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+  jexl.addFunction('removeLabel', removeLabelFunction(token, githubContext));
 
   // generic
   jexl.addFunction('isEvent', isEventFunction(githubContext));
@@ -164,6 +165,19 @@ function labelIssueFunction(token: string, githubContext: Context): FunctionFunc
   return async (labels: string | string[]) => {
     const labelsToUse = typeof labels === 'string' ? [labels] : labels;
     await addLabelsToIssue(
+      token,
+      githubContext.repo.owner,
+      githubContext.repo.repo,
+      githubContext.issue.number,
+      labelsToUse
+    );
+  };
+}
+
+function removeLabelFunction(token: string, githubContext: Context): FunctionFunction {
+  return async (labels: string | string[]) => {
+    const labelsToUse = typeof labels === 'string' ? [labels] : labels;
+    await removeLabelFromIssue(
       token,
       githubContext.repo.owner,
       githubContext.repo.repo,

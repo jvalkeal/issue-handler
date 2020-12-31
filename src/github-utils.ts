@@ -95,6 +95,28 @@ export async function addLabelsToIssue(
   });
 }
 
+export async function removeLabelFromIssue(
+  token: string,
+  owner: string,
+  repo: string,
+  issue_number: number,
+  labels: string[]
+): Promise<void> {
+  core.info(`Removing labels '${labels}' from issue ${issue_number}`);
+  const octokit = github.getOctokit(token);
+
+  const all = labels.map(label => {
+    return octokit.issues.removeLabel({
+      owner,
+      repo,
+      issue_number,
+      name: label
+    });
+  });
+
+  return Promise.all(all).then();
+}
+
 export async function getRepoLabels(token: string, owner: string, repo: string): Promise<string[]> {
   const octokit = github.getOctokit(token);
   return octokit.issues

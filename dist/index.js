@@ -6738,6 +6738,7 @@ function addJexlFunctions(jexl, token, githubContext, data) {
     jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
     // issue
     jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+    jexl.addFunction('removeLabel', removeLabelFunction(token, githubContext));
     // generic
     jexl.addFunction('isEvent', isEventFunction(githubContext));
     jexl.addFunction('isAction', isActionFunction(githubContext));
@@ -6860,6 +6861,12 @@ function labelIssueFunction(token, githubContext) {
     return (labels) => __awaiter(this, void 0, void 0, function* () {
         const labelsToUse = typeof labels === 'string' ? [labels] : labels;
         yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
+    });
+}
+function removeLabelFunction(token, githubContext) {
+    return (labels) => __awaiter(this, void 0, void 0, function* () {
+        const labelsToUse = typeof labels === 'string' ? [labels] : labels;
+        yield github_utils_1.removeLabelFromIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
     });
 }
 function dataInArrayFunction(data) {
@@ -8695,7 +8702,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getIssueLabels = exports.getRepoLabels = exports.addLabelsToIssue = exports.findIssuesWithLabels = exports.findIssues = exports.closeIssue = exports.createIssue = void 0;
+exports.getIssueLabels = exports.getRepoLabels = exports.removeLabelFromIssue = exports.addLabelsToIssue = exports.findIssuesWithLabels = exports.findIssues = exports.closeIssue = exports.createIssue = void 0;
 const core = __importStar(__webpack_require__(470));
 const github = __importStar(__webpack_require__(469));
 const util_1 = __webpack_require__(669);
@@ -8779,6 +8786,22 @@ function addLabelsToIssue(token, owner, repo, issue_number, labels) {
     });
 }
 exports.addLabelsToIssue = addLabelsToIssue;
+function removeLabelFromIssue(token, owner, repo, issue_number, labels) {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.info(`Removing labels '${labels}' from issue ${issue_number}`);
+        const octokit = github.getOctokit(token);
+        const all = labels.map(label => {
+            return octokit.issues.removeLabel({
+                owner,
+                repo,
+                issue_number,
+                name: label
+            });
+        });
+        return Promise.all(all).then();
+    });
+}
+exports.removeLabelFromIssue = removeLabelFromIssue;
 function getRepoLabels(token, owner, repo) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = github.getOctokit(token);
