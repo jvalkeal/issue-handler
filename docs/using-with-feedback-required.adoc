@@ -1,0 +1,45 @@
+# Feedback from a User
+
+One important area with issues is to require and handle feedback from a user
+who originally opened particular an issue. If team workflow is something like:
+
+- Triage that issue
+- Post a comment
+- Add label `status/need-feedback`
+- User gives feedback, team comment again
+- And so on
+
+There are cases where initial user of an issue just goes away immediately or
+later so we to handle that. Assuming that you use two labels, `status/need-feedback`
+and `for/team-attention`, it's possible to ping-pong these labels automatically
+and eventually with tooling to know that issue has become _stale_ from
+a commenting point of view.
+
+[source,yaml]
+----
+config: >
+  {
+    "data": {
+      "team": ["maintaineruser"]
+    },
+    "recipes": [
+      {
+        "name": "Switch to team if user comments",
+        "type": "ifThen",
+        "if": "isEvent('issue_comment') && isAction('created') && actor == context.payload.issue.user.login && labelsContainsAny('for/team-attention')",
+        "then": "[labelIssue('status/need-feedback'), removeLabel('for/team-attention')]"
+      },
+      {
+        "name": "Switch to user if team comments",
+        "type": "ifThen",
+        "if": "isEvent('issue_comment') && isAction('created') && dataInArray('team', actor) && labelsContainsAny('status/need-feedback') ",
+        "then": "[labelIssue('for/team-attention', removeLabel('status/need-feedback'))]"
+      }
+    ]
+  }
+----
+
+What happens abose is:
+
+- If comment user is a same as a issue owner labels are switched to team.
+- If comment user belongs to a team labels are switched back to a user.
