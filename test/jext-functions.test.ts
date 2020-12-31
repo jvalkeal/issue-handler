@@ -54,6 +54,8 @@ describe('jexl-functions tests', () => {
     expect(result).toBeFalsy();
     result = await jexl.eval('labelsContainsAny("nolabel")');
     expect(result).toBeFalsy();
+    result = await jexl.eval('labelsContainsAny("no/nolabel")');
+    expect(result).toBeFalsy();
   });
 
   it('isEvent returns true if event is', async () => {
@@ -117,6 +119,28 @@ describe('jexl-functions tests', () => {
     expect(match1).toBeTruthy();
     const match2 = await jexl.eval("'user3' in data.contributors", c);
     expect(match2).toBeFalsy();
+  });
+
+  it('removeLabel calls with correct arguments from array', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, {});
+    const spy = jest
+      .spyOn(githubUtils, 'removeLabelFromIssue')
+      .mockImplementation((token: string, owner: string, repo: string, issue_number: number, labels: string[]) => {
+        return Promise.resolve();
+      });
+    await jexl.eval('removeLabel(["area/core"])');
+    expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['area/core']);
+  });
+
+  it('removeLabel calls with correct arguments from string', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, {});
+    const spy = jest
+      .spyOn(githubUtils, 'removeLabelFromIssue')
+      .mockImplementation((token: string, owner: string, repo: string, issue_number: number, labels: string[]) => {
+        return Promise.resolve();
+      });
+    await jexl.eval('removeLabel("area/core")');
+    expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['area/core']);
   });
 
   it('dataInArray works correctly', async () => {

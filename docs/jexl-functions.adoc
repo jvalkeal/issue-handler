@@ -4,6 +4,7 @@
 - <<jexl-functions-labelsContainsAny>>
 - <<jexl-functions-hasLabels>>
 - <<jexl-functions-labelIssue>>
+- <<jexl-functions-removeLabel>>
 - <<jexl-functions-isEvent>>
 - <<jexl-functions-isAction>>
 
@@ -120,6 +121,32 @@ labelIssue(['label1', 'label2'])
 
 |labels
 |Labels to add, can be string or string[]
+|===
+
+### Return Value
+
+void when returned
+
+[[jexl-functions-removeLabel]]
+## removeLabel
+
+### Summary
+
+Removes labels from an issue
+
+----
+removeLabel('label')
+removeLabel(['label1', 'label2'])
+----
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|labels
+|Labels to remove, can be string or string[]
 |===
 
 ### Return Value
