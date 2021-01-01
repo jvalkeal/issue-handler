@@ -104,6 +104,28 @@ describe('jexl-functions tests', () => {
     expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['area/core']);
   });
 
+  it('addLabel calls with correct arguments from array', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, {});
+    const spy = jest
+      .spyOn(githubUtils, 'addLabelsToIssue')
+      .mockImplementation((token: string, owner: string, repo: string, issue_number: number, labels: string[]) => {
+        return Promise.resolve();
+      });
+    await jexl.eval('addLabel(["area/core"])');
+    expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['area/core']);
+  });
+
+  it('addLabel calls with correct arguments from string', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, {});
+    const spy = jest
+      .spyOn(githubUtils, 'addLabelsToIssue')
+      .mockImplementation((token: string, owner: string, repo: string, issue_number: number, labels: string[]) => {
+        return Promise.resolve();
+      });
+    await jexl.eval('addLabel("area/core")');
+    expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['area/core']);
+  });
+
   it('jexl expression can find item from array', async () => {
     const c: ExpressionContext = {
       context: CONTEXT_UNLABELED_ISSUE,

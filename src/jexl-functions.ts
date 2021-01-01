@@ -13,6 +13,7 @@ import {
   labeledStartsWith
 } from './context-utils';
 import { JSONObject } from './interfaces';
+import { logFunctionDeprecation } from './logging';
 
 /**
  * Add all supported jexl functions.
@@ -29,6 +30,7 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
 
   // issue
   jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+  jexl.addFunction('addLabel', addLabelFunction(token, githubContext));
   jexl.addFunction('removeLabel', removeLabelFunction(token, githubContext));
 
   // generic
@@ -162,6 +164,20 @@ function hasLabelsFunction(githubContext: Context): FunctionFunction {
  * Creates a function adding label to an issue.
  */
 function labelIssueFunction(token: string, githubContext: Context): FunctionFunction {
+  return async (labels: string | string[]) => {
+    logFunctionDeprecation('labelIssue', 'addLabel', 'v0.0.6');
+    const labelsToUse = typeof labels === 'string' ? [labels] : labels;
+    await addLabelsToIssue(
+      token,
+      githubContext.repo.owner,
+      githubContext.repo.repo,
+      githubContext.issue.number,
+      labelsToUse
+    );
+  };
+}
+
+function addLabelFunction(token: string, githubContext: Context): FunctionFunction {
   return async (labels: string | string[]) => {
     const labelsToUse = typeof labels === 'string' ? [labels] : labels;
     await addLabelsToIssue(
