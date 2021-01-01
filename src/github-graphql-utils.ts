@@ -7,7 +7,7 @@ export async function simpleQuery(token: string): Promise<any> {
     },
   });
 
-  const { data } = await graphqlWithAuth(`
+  const res = await graphqlWithAuth(`
     query {
       repository(owner: "jvalkeal", name: "atest5") {
         issues(last: 1, states:OPEN) {
@@ -29,5 +29,5 @@ export async function simpleQuery(token: string): Promise<any> {
       }
     }
     `);
-  return data;
+  return res;
 }

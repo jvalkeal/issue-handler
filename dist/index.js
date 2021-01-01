@@ -453,7 +453,7 @@ function simpleQuery(token) {
                 authorization: `token ${token}`
             },
         });
-        const { data } = yield graphqlWithAuth(`
+        const res = yield graphqlWithAuth(`
     query {
       repository(owner: "jvalkeal", name: "atest5") {
         issues(last: 1, states:OPEN) {
@@ -475,7 +475,7 @@ function simpleQuery(token) {
       }
     }
     `);
-        return data;
+        return res;
     });
 }
 exports.simpleQuery = simpleQuery;
