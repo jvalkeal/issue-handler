@@ -451,18 +451,17 @@ function simpleQuery(token, owner, repo) {
         const res = yield graphql_1.graphql({
             query: `
       query last($owner: String!, $repo: String!) {
-          repository(owner:$owner, name:$repo) {
-            issues(last: 1, states:OPEN) {
-              nodes {
-                number
-                timelineItems(last: 1, itemTypes: LABELED_EVENT) {
-                  totalCount
-                  nodes {
-                    ... on LabeledEvent {
-                      createdAt
-                      label {
-                        name
-                      }
+        repository(owner:$owner, name:$repo) {
+          issues(last: 1, states:OPEN) {
+            nodes {
+              number
+              timelineItems(last: 1, itemTypes: LABELED_EVENT) {
+                totalCount
+                nodes {
+                  ... on LabeledEvent {
+                    createdAt
+                    label {
+                      name
                     }
                   }
                 }
