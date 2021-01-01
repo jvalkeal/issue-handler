@@ -429,6 +429,60 @@ function onceStrict (fn) {
 
 /***/ }),
 
+/***/ 63:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.simpleQuery = void 0;
+const graphql_1 = __webpack_require__(898);
+function simpleQuery(token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const graphqlWithAuth = graphql_1.graphql.defaults({
+            headers: {
+                authorization: `token ${token}`
+            },
+        });
+        const { data } = yield graphqlWithAuth(`
+    query {
+      repository(owner: "jvalkeal", name: "atest5") {
+        issues(last: 1, states:OPEN) {
+          nodes {
+            number
+            timelineItems(last: 1, itemTypes: LABELED_EVENT) {
+              totalCount
+              nodes {
+                ... on LabeledEvent {
+                  createdAt
+                  label {
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    `);
+        return data;
+    });
+}
+exports.simpleQuery = simpleQuery;
+
+
+/***/ }),
+
 /***/ 65:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -704,6 +758,41 @@ var Jexl = /*#__PURE__*/function () {
 
 module.exports = new Jexl();
 module.exports.Jexl = Jexl;
+
+/***/ }),
+
+/***/ 71:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.logFunctionDeprecation = void 0;
+const core = __importStar(__webpack_require__(470));
+function logFunctionDeprecation(oldName, newName, whenRemoved) {
+    core.warning(`Function '${oldName}' is deprecated and will be removed in '${whenRemoved}',  use '${newName}'`);
+}
+exports.logFunctionDeprecation = logFunctionDeprecation;
+
 
 /***/ }),
 
@@ -1956,6 +2045,7 @@ var RecipeType;
 (function (RecipeType) {
     RecipeType["ifThen"] = "ifThen";
     RecipeType["manageBackportIssues"] = "manageBackportIssues";
+    RecipeType["staleIssues"] = "staleIssues";
 })(RecipeType = exports.RecipeType || (exports.RecipeType = {}));
 
 
@@ -6725,6 +6815,7 @@ const util_1 = __webpack_require__(669);
 const jexl_1 = __webpack_require__(65);
 const github_utils_1 = __webpack_require__(888);
 const context_utils_1 = __webpack_require__(269);
+const logging_1 = __webpack_require__(71);
 /**
  * Add all supported jexl functions.
  */
@@ -6738,6 +6829,7 @@ function addJexlFunctions(jexl, token, githubContext, data) {
     jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
     // issue
     jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+    jexl.addFunction('addLabel', addLabelFunction(token, githubContext));
     jexl.addFunction('removeLabel', removeLabelFunction(token, githubContext));
     // generic
     jexl.addFunction('isEvent', isEventFunction(githubContext));
@@ -6858,6 +6950,13 @@ function hasLabelsFunction(githubContext) {
  * Creates a function adding label to an issue.
  */
 function labelIssueFunction(token, githubContext) {
+    return (labels) => __awaiter(this, void 0, void 0, function* () {
+        logging_1.logFunctionDeprecation('labelIssue', 'addLabel', 'v0.0.6');
+        const labelsToUse = typeof labels === 'string' ? [labels] : labels;
+        yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
+    });
+}
+function addLabelFunction(token, githubContext) {
     return (labels) => __awaiter(this, void 0, void 0, function* () {
         const labelsToUse = typeof labels === 'string' ? [labels] : labels;
         yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
@@ -8878,6 +8977,7 @@ const interfaces_1 = __webpack_require__(264);
 const jexl_functions_1 = __webpack_require__(798);
 const if_then_1 = __webpack_require__(843);
 const manage_backport_issues_1 = __webpack_require__(382);
+const stale_issues_1 = __webpack_require__(897);
 /**
  * Main handle function which takes a json config, processes it
  * and then calls various recipes in it.
@@ -8915,6 +9015,9 @@ function handleIssue(token, config) {
                 case interfaces_1.RecipeType.manageBackportIssues:
                     yield manage_backport_issues_1.handleManageBackportIssues(recipe, jexl, expressionContext, token);
                     break;
+                case interfaces_1.RecipeType.staleIssues:
+                    yield stale_issues_1.handleStaleIssues(recipe, jexl, expressionContext, token);
+                    break;
                 default:
                     break;
             }
@@ -8934,6 +9037,56 @@ function getHandlerConfigFromJson(json) {
 
 /***/ }),
 
+/***/ 897:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleStaleIssues = void 0;
+const core = __importStar(__webpack_require__(470));
+const util_1 = __webpack_require__(669);
+const github_graphql_utils_1 = __webpack_require__(63);
+function handleStaleIssues(recipe, jexl, expressionContext, token) {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.info(`Doing simpleQuery`);
+        const data = yield github_graphql_utils_1.simpleQuery(token);
+        core.info(`Result simpleQuery ${util_1.inspect(data)}`);
+    });
+}
+exports.handleStaleIssues = handleStaleIssues;
+
+
+/***/ }),
+
 /***/ 898:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -8945,13 +9098,16 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var request = __webpack_require__(753);
 var universalUserAgent = __webpack_require__(796);
 
-const VERSION = "4.5.2";
+const VERSION = "4.5.8";
 
 class GraphqlError extends Error {
   constructor(request, response) {
     const message = response.data.errors[0].message;
     super(message);
     Object.assign(this, response.data);
+    Object.assign(this, {
+      headers: response.headers
+    });
     this.name = "GraphqlError";
     this.request = request; // Maintains proper stack trace (only available on V8)
 
@@ -8965,13 +9121,18 @@ class GraphqlError extends Error {
 }
 
 const NON_VARIABLE_OPTIONS = ["method", "baseUrl", "url", "headers", "request", "query", "mediaType"];
+const GHES_V3_SUFFIX_REGEX = /\/api\/v3\/?$/;
 function graphql(request, query, options) {
-  options = typeof query === "string" ? options = Object.assign({
+  if (typeof query === "string" && options && "query" in options) {
+    return Promise.reject(new Error(`[@octokit/graphql] "query" cannot be used as variable name`));
+  }
+
+  const parsedOptions = typeof query === "string" ? Object.assign({
     query
-  }, options) : options = query;
-  const requestOptions = Object.keys(options).reduce((result, key) => {
+  }, options) : query;
+  const requestOptions = Object.keys(parsedOptions).reduce((result, key) => {
     if (NON_VARIABLE_OPTIONS.includes(key)) {
-      result[key] = options[key];
+      result[key] = parsedOptions[key];
       return result;
     }
 
@@ -8979,12 +9140,27 @@ function graphql(request, query, options) {
       result.variables = {};
     }
 
-    result.variables[key] = options[key];
+    result.variables[key] = parsedOptions[key];
     return result;
-  }, {});
+  }, {}); // workaround for GitHub Enterprise baseUrl set with /api/v3 suffix
+  // https://github.com/octokit/auth-app.js/issues/111#issuecomment-657610451
+
+  const baseUrl = parsedOptions.baseUrl || request.endpoint.DEFAULTS.baseUrl;
+
+  if (GHES_V3_SUFFIX_REGEX.test(baseUrl)) {
+    requestOptions.url = baseUrl.replace(GHES_V3_SUFFIX_REGEX, "/api/graphql");
+  }
+
   return request(requestOptions).then(response => {
     if (response.data.errors) {
+      const headers = {};
+
+      for (const key of Object.keys(response.headers)) {
+        headers[key] = response.headers[key];
+      }
+
       throw new GraphqlError(requestOptions, {
+        headers,
         data: response.data
       });
     }

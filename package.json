@@ -29,6 +29,7 @@
     "@actions/github": "^4.0.0",
     "@actions/io": "^1.0.2",
     "@actions/tool-cache": "^1.6.0",
+    "@octokit/graphql": "^4.5.8",
     "jexl": "^2.3.0",
     "semver": "^7.3.2",
     "typed-rest-client": "1.7.3"
