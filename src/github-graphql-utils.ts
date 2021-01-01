@@ -4,7 +4,7 @@ export async function simpleQuery(token: string): Promise<any> {
   const graphqlWithAuth = graphql.defaults({
     headers: {
       authorization: `token ${token}`
-    },
+    }
   });
 
   const res = await graphqlWithAuth(`
