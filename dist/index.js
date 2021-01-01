@@ -446,26 +446,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.simpleQuery = void 0;
 const graphql_1 = __webpack_require__(898);
-function simpleQuery(token) {
+function simpleQuery(token, owner, repo) {
     return __awaiter(this, void 0, void 0, function* () {
-        const graphqlWithAuth = graphql_1.graphql.defaults({
-            headers: {
-                authorization: `token ${token}`
-            }
-        });
-        const res = yield graphqlWithAuth(`
-    query {
-      repository(owner: "jvalkeal", name: "atest5") {
-        issues(last: 1, states:OPEN) {
-          nodes {
-            number
-            timelineItems(last: 1, itemTypes: LABELED_EVENT) {
-              totalCount
+        const res = yield graphql_1.graphql({
+            query: `
+      query last($owner: String!, $repo: String!) {
+          repository(owner:$owner, name:$repo) {
+            issues(last: 1, states:OPEN) {
               nodes {
-                ... on LabeledEvent {
-                  createdAt
-                  label {
-                    name
+                number
+                timelineItems(last: 1, itemTypes: LABELED_EVENT) {
+                  totalCount
+                  nodes {
+                    ... on LabeledEvent {
+                      createdAt
+                      label {
+                        name
+                      }
+                    }
                   }
                 }
               }
@@ -473,8 +471,41 @@ function simpleQuery(token) {
           }
         }
       }
-    }
-    `);
+    `,
+            owner,
+            repo,
+            headers: {
+                authorization: `token ${token}`
+            }
+        });
+        // const graphqlWithAuth = graphql.defaults({
+        //   headers: {
+        //     authorization: `token ${token}`
+        //   }
+        // })
+        // ;
+        // const res = await graphqlWithAuth(`
+        //   query ($owner: String!, $repo: String!) {
+        //     repository(owner:$owner, name:$repo) {
+        //       issues(last: 1, states:OPEN) {
+        //         nodes {
+        //           number
+        //           timelineItems(last: 1, itemTypes: LABELED_EVENT) {
+        //             totalCount
+        //             nodes {
+        //               ... on LabeledEvent {
+        //                 createdAt
+        //                 label {
+        //                   name
+        //                 }
+        //               }
+        //             }
+        //           }
+        //         }
+        //       }
+        //     }
+        //   }
+        //   `);
         return res;
     });
 }
@@ -9077,11 +9108,13 @@ const util_1 = __webpack_require__(669);
 const github_graphql_utils_1 = __webpack_require__(63);
 function handleStaleIssues(recipe, jexl, expressionContext, token) {
     return __awaiter(this, void 0, void 0, function* () {
+        const owner = expressionContext.context.repo.owner;
+        const repo = expressionContext.context.repo.repo;
         core.info(`Incoming config ${util_1.inspect(recipe)}`);
         const config = resolveConfig(recipe);
         core.info(`Used config ${util_1.inspect(config)}`);
         core.info(`Doing simpleQuery`);
-        const data = yield github_graphql_utils_1.simpleQuery(token);
+        const data = yield github_graphql_utils_1.simpleQuery(token, owner, repo);
         core.info(`Result simpleQuery ${util_1.inspect(data, true, 10)}`);
     });
 }

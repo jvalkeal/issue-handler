@@ -23,11 +23,13 @@ export async function handleStaleIssues(
   expressionContext: ExpressionContext,
   token: string
 ) {
+  const owner = expressionContext.context.repo.owner;
+  const repo = expressionContext.context.repo.repo;
   core.info(`Incoming config ${inspect(recipe)}`);
   const config = resolveConfig(recipe);
   core.info(`Used config ${inspect(config)}`);
   core.info(`Doing simpleQuery`);
-  const data = await simpleQuery(token);
+  const data = await simpleQuery(token, owner, repo);
   core.info(`Result simpleQuery ${inspect(data, true, 10)}`);
 }
 
