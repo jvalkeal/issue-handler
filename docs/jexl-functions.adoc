@@ -3,7 +3,7 @@
 - <<jexl-functions-labelsContainsAll>>
 - <<jexl-functions-labelsContainsAny>>
 - <<jexl-functions-hasLabels>>
-- <<jexl-functions-labelIssue>>
+- <<jexl-functions-addLabel>>
 - <<jexl-functions-removeLabel>>
 - <<jexl-functions-isEvent>>
 - <<jexl-functions-isAction>>
@@ -101,16 +101,16 @@ isEvent('issues')
 
 boolean indicating if event matches
 
-[[jexl-functions-labelIssue]]
-## labelIssue
+[[jexl-functions-addLabel]]
+## addLabel
 
 ### Summary
 
 Adds labels to an issue
 
 ----
-labelIssue('label')
-labelIssue(['label1', 'label2'])
+addLabel('label')
+addLabel(['label1', 'label2'])
 ----
 
 ### Parameters
