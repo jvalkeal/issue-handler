@@ -707,6 +707,41 @@ module.exports.Jexl = Jexl;
 
 /***/ }),
 
+/***/ 71:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.logFunctionDeprecation = void 0;
+const core = __importStar(__webpack_require__(470));
+function logFunctionDeprecation(oldName, newName, whenRemoved) {
+    core.warning(`Function '${oldName}' is deprecated and will be removed in '${whenRemoved}',  use '${newName}'`);
+}
+exports.logFunctionDeprecation = logFunctionDeprecation;
+
+
+/***/ }),
+
 /***/ 82:
 /***/ (function(__unusedmodule, exports) {
 
@@ -6725,6 +6760,7 @@ const util_1 = __webpack_require__(669);
 const jexl_1 = __webpack_require__(65);
 const github_utils_1 = __webpack_require__(888);
 const context_utils_1 = __webpack_require__(269);
+const logging_1 = __webpack_require__(71);
 /**
  * Add all supported jexl functions.
  */
@@ -6738,6 +6774,7 @@ function addJexlFunctions(jexl, token, githubContext, data) {
     jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
     // issue
     jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+    jexl.addFunction('addLabel', addLabelFunction(token, githubContext));
     jexl.addFunction('removeLabel', removeLabelFunction(token, githubContext));
     // generic
     jexl.addFunction('isEvent', isEventFunction(githubContext));
@@ -6858,6 +6895,13 @@ function hasLabelsFunction(githubContext) {
  * Creates a function adding label to an issue.
  */
 function labelIssueFunction(token, githubContext) {
+    return (labels) => __awaiter(this, void 0, void 0, function* () {
+        logging_1.logFunctionDeprecation('labelIssue', 'addLabel', 'v0.0.6');
+        const labelsToUse = typeof labels === 'string' ? [labels] : labels;
+        yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
+    });
+}
+function addLabelFunction(token, githubContext) {
     return (labels) => __awaiter(this, void 0, void 0, function* () {
         const labelsToUse = typeof labels === 'string' ? [labels] : labels;
         yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
