@@ -23,8 +23,22 @@ export async function handleStaleIssues(
   expressionContext: ExpressionContext,
   token: string
 ) {
-  core.info(`Config ${inspect(recipe)}`);
+  core.info(`Incoming config ${inspect(recipe)}`);
+  const config = resolveConfig(recipe);
+  core.info(`Used config ${inspect(config)}`);
   core.info(`Doing simpleQuery`);
   const data = await simpleQuery(token);
   core.info(`Result simpleQuery ${inspect(data, true, 10)}`);
+}
+
+/**
+ * Resolves an actual config with defaults, etc.
+ */
+function resolveConfig(recipe: StaleIssues): StaleIssues {
+  return {
+    issueHandleDayAfter: recipe.issueHandleDayAfter,
+    issueHandleDayBefore: recipe.issueHandleDayBefore,
+    issueDaysBeforeStale: recipe.issueDaysBeforeStale || 60,
+    issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7
+  };
 }

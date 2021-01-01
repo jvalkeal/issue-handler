@@ -9077,13 +9077,26 @@ const util_1 = __webpack_require__(669);
 const github_graphql_utils_1 = __webpack_require__(63);
 function handleStaleIssues(recipe, jexl, expressionContext, token) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.info(`Config ${util_1.inspect(recipe)}`);
+        core.info(`Incoming config ${util_1.inspect(recipe)}`);
+        const config = resolveConfig(recipe);
+        core.info(`Used config ${util_1.inspect(config)}`);
         core.info(`Doing simpleQuery`);
         const data = yield github_graphql_utils_1.simpleQuery(token);
         core.info(`Result simpleQuery ${util_1.inspect(data, true, 10)}`);
     });
 }
 exports.handleStaleIssues = handleStaleIssues;
+/**
+ * Resolves an actual config with defaults, etc.
+ */
+function resolveConfig(recipe) {
+    return {
+        issueHandleDayAfter: recipe.issueHandleDayAfter,
+        issueHandleDayBefore: recipe.issueHandleDayBefore,
+        issueDaysBeforeStale: recipe.issueDaysBeforeStale || 60,
+        issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7
+    };
+}
 
 
 /***/ }),
