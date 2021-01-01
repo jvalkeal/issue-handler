@@ -14,5 +14,5 @@ export async function handleStaleIssues(
 ) {
   core.info(`Doing simpleQuery`);
   const data = await simpleQuery(token);
-  core.info(`Result simpleQuery ${inspect(data)}`);
+  core.info(`Result simpleQuery ${inspect(data, true, 10)}`);
 }

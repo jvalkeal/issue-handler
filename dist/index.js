@@ -9079,7 +9079,7 @@ function handleStaleIssues(recipe, jexl, expressionContext, token) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info(`Doing simpleQuery`);
         const data = yield github_graphql_utils_1.simpleQuery(token);
-        core.info(`Result simpleQuery ${util_1.inspect(data)}`);
+        core.info(`Result simpleQuery ${util_1.inspect(data, true, 10)}`);
     });
 }
 exports.handleStaleIssues = handleStaleIssues;
