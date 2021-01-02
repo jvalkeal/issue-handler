@@ -14817,12 +14817,15 @@ function handleStaleIssues(recipe, jexl, expressionContext, token) {
 }
 exports.handleStaleIssues = handleStaleIssues;
 function processIssues(staleIssues, config) {
+    core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
     const staleDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeStale, 'days');
+    core.info(`staleDate ${staleDate}`);
     for (const i of staleIssues) {
+        core.info(`updatedAt ${i.updatedAt}`);
         if (i.updatedAt) {
             const diffInDays = moment_1.default(staleDate).diff(moment_1.default(i.updatedAt), 'days');
             core.info(`diff ${diffInDays}`);
-            if (diffInDays > 0) {
+            if (diffInDays < 0) {
                 core.info(`Found stale issue #${i.number} '${i.title}'`);
             }
         }
