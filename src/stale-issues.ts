@@ -1,7 +1,8 @@
 import * as core from '@actions/core';
 import { Jexl } from 'jexl';
 import { inspect } from 'util';
-import { queryStaleIssues } from './github-graphql-utils';
+import moment from 'moment';
+import { queryStaleIssues, StaleIssue } from './github-graphql-utils';
 import { ExpressionContext } from './interfaces';
 
 export interface StaleIssues {
@@ -16,6 +17,14 @@ export interface StaleIssues {
   issueRemoveStaleWhenUpdated?: boolean;
 }
 
+export interface StaleIssuesConfig {
+  issueDaysBeforeStale: number;
+  issueDaysBeforeClose: number;
+}
+
+/**
+ * Main hook to handle stale issues recipe.
+ */
 export async function handleStaleIssues(
   recipe: StaleIssues,
   jexl: Jexl,
@@ -30,19 +39,30 @@ export async function handleStaleIssues(
   core.info(`Used config ${inspect(config)}`);
 
   core.info(`Doing queryStaleIssues`);
-  const stateIssues = await queryStaleIssues(token, owner, repo);
-  core.info(`Result queryStaleIssues ${inspect(stateIssues, true, 10)}`);
+  // for now just blindly query all open issues
+  const staleIssues = await queryStaleIssues(token, owner, repo);
+  core.info(`Result queryStaleIssues ${inspect(staleIssues, true, 10)}`);
 
-  for (const i of stateIssues) {
-    core.info(`Found stale issue #${i.number} '${i.title}'`);
+  processIssues(staleIssues, config);
+}
+
+function processIssues(staleIssues: StaleIssue[], config: StaleIssuesConfig) {
+  const staleDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
+  for (const i of staleIssues) {
+    if (i.createdAt) {
+      const diffInDays = moment(i.createdAt).diff(moment(staleDate), 'days');
+      core.info(`diff ${diffInDays}`);
+      if (diffInDays > 0) {
+        core.info(`Found stale issue #${i.number} '${i.title}'`);
+      }
+    }
   }
-
 }
 
 /**
  * Resolves an actual config with defaults, etc.
  */
-function resolveConfig(recipe: StaleIssues): StaleIssues {
+function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
   return {
     issueDaysBeforeStale: recipe.issueDaysBeforeStale || 60,
     issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7
