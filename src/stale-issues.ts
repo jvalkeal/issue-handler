@@ -47,10 +47,10 @@ export async function handleStaleIssues(
 }
 
 function processIssues(staleIssues: StaleIssue[], config: StaleIssuesConfig) {
-  const staleDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
+  const staleDate = moment(new Date()).subtract(config.issueDaysBeforeStale, 'days');
   for (const i of staleIssues) {
     if (i.updatedAt) {
-      const diffInDays = moment(i.updatedAt).diff(moment(staleDate), 'days');
+      const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
       core.info(`diff ${diffInDays}`);
       if (diffInDays > 0) {
         core.info(`Found stale issue #${i.number} '${i.title}'`);
