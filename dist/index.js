@@ -444,7 +444,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.simpleQuery = void 0;
+exports.simpleQuery2 = exports.simpleQuery = void 0;
 const graphql_1 = __webpack_require__(898);
 function simpleQuery(token, owner, repo) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -477,38 +477,45 @@ function simpleQuery(token, owner, repo) {
                 authorization: `token ${token}`
             }
         });
-        // const graphqlWithAuth = graphql.defaults({
-        //   headers: {
-        //     authorization: `token ${token}`
-        //   }
-        // })
-        // ;
-        // const res = await graphqlWithAuth(`
-        //   query ($owner: String!, $repo: String!) {
-        //     repository(owner:$owner, name:$repo) {
-        //       issues(last: 1, states:OPEN) {
-        //         nodes {
-        //           number
-        //           timelineItems(last: 1, itemTypes: LABELED_EVENT) {
-        //             totalCount
-        //             nodes {
-        //               ... on LabeledEvent {
-        //                 createdAt
-        //                 label {
-        //                   name
-        //                 }
-        //               }
-        //             }
-        //           }
-        //         }
-        //       }
-        //     }
-        //   }
-        //   `);
         return res;
     });
 }
 exports.simpleQuery = simpleQuery;
+function simpleQuery2(token, owner, repo) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const xxx = yield graphql_1.graphql({
+            query: `
+      query last($owner: String!, $repo: String!) {
+        repository(owner:$owner, name:$repo) {
+          issues(last: 1, states:OPEN) {
+            nodes {
+              number
+              timelineItems(last: 1, itemTypes: LABELED_EVENT) {
+                totalCount
+                nodes {
+                  ... on LabeledEvent {
+                    createdAt
+                    label {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+            owner,
+            repo,
+            headers: {
+                authorization: `token ${token}`
+            }
+        });
+        return xxx;
+    });
+}
+exports.simpleQuery2 = simpleQuery2;
 
 
 /***/ }),
@@ -9113,7 +9120,7 @@ function handleStaleIssues(recipe, jexl, expressionContext, token) {
         const config = resolveConfig(recipe);
         core.info(`Used config ${util_1.inspect(config)}`);
         core.info(`Doing simpleQuery`);
-        const data = yield github_graphql_utils_1.simpleQuery(token, owner, repo);
+        const data = yield github_graphql_utils_1.simpleQuery2(token, owner, repo);
         core.info(`Result simpleQuery ${util_1.inspect(data, true, 10)}`);
     });
 }

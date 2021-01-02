@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import { Jexl } from 'jexl';
 import { inspect } from 'util';
-import { simpleQuery } from './github-graphql-utils';
+import { simpleQuery, simpleQuery2 } from './github-graphql-utils';
 import { ExpressionContext } from './interfaces';
 
 export interface StaleIssues {
@@ -29,7 +29,7 @@ export async function handleStaleIssues(
   const config = resolveConfig(recipe);
   core.info(`Used config ${inspect(config)}`);
   core.info(`Doing simpleQuery`);
-  const data = await simpleQuery(token, owner, repo);
+  const data = await simpleQuery2(token, owner, repo);
   core.info(`Result simpleQuery ${inspect(data, true, 10)}`);
 }
 
