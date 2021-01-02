@@ -1,54 +1,42 @@
 import { graphql } from '@octokit/graphql';
 import { Repository } from './generated/graphql';
 
-export async function simpleQuery(token: string, owner: string, repo: string): Promise<any> {
-  const res = await graphql({
-    query: `
-      query last($owner: String!, $repo: String!) {
-        repository(owner:$owner, name:$repo) {
-          issues(last: 1, states:OPEN) {
-            nodes {
-              number
-              timelineItems(last: 1, itemTypes: LABELED_EVENT) {
-                totalCount
-                nodes {
-                  ... on LabeledEvent {
-                    createdAt
-                    label {
-                      name
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `,
-    owner,
-    repo,
-    headers: {
-      authorization: `token ${token}`
-    }
-  });
-  return res;
+interface StaleIssue {
+  number: number;
+  owner: string;
+  title: string;
+  // hasStaleLabel: boolean;
 }
 
-export async function simpleQuery2(token: string, owner: string, repo: string): Promise<any> {
-  const xxx = await graphql<{repository: Repository}>({
+export async function queryStaleIssues(token: string, owner: string, repo: string): Promise<StaleIssue[]> {
+  const issues = await graphql<{ repository: Repository }>({
     query: `
       query last($owner: String!, $repo: String!) {
         repository(owner:$owner, name:$repo) {
-          issues(last: 1, states:OPEN) {
+          issues(last: 100, states:OPEN) {
             nodes {
               number
-              timelineItems(last: 1, itemTypes: LABELED_EVENT) {
+              title
+              createdAt
+              updatedAt
+              author {
+                login
+              }
+              timelineItems(last: 10, itemTypes: [LABELED_EVENT,ISSUE_COMMENT]) {
                 totalCount
                 nodes {
                   ... on LabeledEvent {
+                    __typename
                     createdAt
                     label {
                       name
+                    }
+                  }
+                  ... on IssueComment {
+                    __typename
+                    createdAt
+                    author {
+                      login
                     }
                   }
                 }
@@ -63,7 +51,19 @@ export async function simpleQuery2(token: string, owner: string, repo: string): 
     headers: {
       authorization: `token ${token}`
     }
+  }).then(res => res.repository.issues);
+
+  const staleIssues: StaleIssue[] = [];
+
+  issues.nodes?.forEach(i => {
+    if (i?.number && i.title && i.author?.login) {
+      staleIssues.push({
+        number: i.number,
+        owner: i.author.login,
+        title: i.title
+      });
+    }
   });
-  const xxx2 = xxx.repository.issues.nodes?.map(n => n?.timelineItems);
-  return xxx2;
+
+  return staleIssues;
 }

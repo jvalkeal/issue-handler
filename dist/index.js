@@ -444,60 +444,39 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.simpleQuery2 = exports.simpleQuery = void 0;
+exports.queryStaleIssues = void 0;
 const graphql_1 = __webpack_require__(898);
-function simpleQuery(token, owner, repo) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const res = yield graphql_1.graphql({
-            query: `
-      query last($owner: String!, $repo: String!) {
-        repository(owner:$owner, name:$repo) {
-          issues(last: 1, states:OPEN) {
-            nodes {
-              number
-              timelineItems(last: 1, itemTypes: LABELED_EVENT) {
-                totalCount
-                nodes {
-                  ... on LabeledEvent {
-                    createdAt
-                    label {
-                      name
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `,
-            owner,
-            repo,
-            headers: {
-                authorization: `token ${token}`
-            }
-        });
-        return res;
-    });
-}
-exports.simpleQuery = simpleQuery;
-function simpleQuery2(token, owner, repo) {
+function queryStaleIssues(token, owner, repo) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const xxx = yield graphql_1.graphql({
+        const issues = yield graphql_1.graphql({
             query: `
       query last($owner: String!, $repo: String!) {
         repository(owner:$owner, name:$repo) {
-          issues(last: 1, states:OPEN) {
+          issues(last: 100, states:OPEN) {
             nodes {
               number
-              timelineItems(last: 1, itemTypes: LABELED_EVENT) {
+              title
+              createdAt
+              updatedAt
+              author {
+                login
+              }
+              timelineItems(last: 10, itemTypes: [LABELED_EVENT,ISSUE_COMMENT]) {
                 totalCount
                 nodes {
                   ... on LabeledEvent {
+                    __typename
                     createdAt
                     label {
                       name
+                    }
+                  }
+                  ... on IssueComment {
+                    __typename
+                    createdAt
+                    author {
+                      login
                     }
                   }
                 }
@@ -512,12 +491,22 @@ function simpleQuery2(token, owner, repo) {
             headers: {
                 authorization: `token ${token}`
             }
+        }).then(res => res.repository.issues);
+        const staleIssues = [];
+        (_a = issues.nodes) === null || _a === void 0 ? void 0 : _a.forEach(i => {
+            var _a;
+            if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
+                staleIssues.push({
+                    number: i.number,
+                    owner: i.author.login,
+                    title: i.title
+                });
+            }
         });
-        const xxx2 = (_a = xxx.repository.issues.nodes) === null || _a === void 0 ? void 0 : _a.map(n => n === null || n === void 0 ? void 0 : n.timelineItems);
-        return xxx2;
+        return staleIssues;
     });
 }
-exports.simpleQuery2 = simpleQuery2;
+exports.queryStaleIssues = queryStaleIssues;
 
 
 /***/ }),
@@ -9121,9 +9110,12 @@ function handleStaleIssues(recipe, jexl, expressionContext, token) {
         core.info(`Incoming config ${util_1.inspect(recipe)}`);
         const config = resolveConfig(recipe);
         core.info(`Used config ${util_1.inspect(config)}`);
-        core.info(`Doing simpleQuery`);
-        const data = yield github_graphql_utils_1.simpleQuery2(token, owner, repo);
-        core.info(`Result simpleQuery ${util_1.inspect(data, true, 10)}`);
+        core.info(`Doing queryStaleIssues`);
+        const stateIssues = yield github_graphql_utils_1.queryStaleIssues(token, owner, repo);
+        core.info(`Result queryStaleIssues ${util_1.inspect(stateIssues, true, 10)}`);
+        for (const i of stateIssues) {
+            core.info(`Found stale issue #${i.number} '${i.title}'`);
+        }
     });
 }
 exports.handleStaleIssues = handleStaleIssues;
@@ -9132,8 +9124,6 @@ exports.handleStaleIssues = handleStaleIssues;
  */
 function resolveConfig(recipe) {
     return {
-        issueHandleDayAfter: recipe.issueHandleDayAfter,
-        issueHandleDayBefore: recipe.issueHandleDayBefore,
         issueDaysBeforeStale: recipe.issueDaysBeforeStale || 60,
         issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7
     };
