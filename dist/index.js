@@ -482,6 +482,7 @@ function simpleQuery(token, owner, repo) {
 }
 exports.simpleQuery = simpleQuery;
 function simpleQuery2(token, owner, repo) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const xxx = yield graphql_1.graphql({
             query: `
@@ -512,7 +513,8 @@ function simpleQuery2(token, owner, repo) {
                 authorization: `token ${token}`
             }
         });
-        return xxx;
+        const xxx2 = (_a = xxx.issues.nodes) === null || _a === void 0 ? void 0 : _a.map(n => n === null || n === void 0 ? void 0 : n.timelineItems);
+        return xxx2;
     });
 }
 exports.simpleQuery2 = simpleQuery2;

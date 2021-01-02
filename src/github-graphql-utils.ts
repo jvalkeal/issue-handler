@@ -64,5 +64,6 @@ export async function simpleQuery2(token: string, owner: string, repo: string): 
       authorization: `token ${token}`
     }
   });
-  return xxx;
+  const xxx2 = xxx.issues.nodes?.map(n => n?.timelineItems);
+  return xxx2;
 }
