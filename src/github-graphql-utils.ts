@@ -6,6 +6,7 @@ export interface StaleIssue {
   owner: string;
   title: string;
   createdAt: Date;
+  updatedAt: Date;
   // hasStaleLabel: boolean;
 }
 
@@ -68,11 +69,13 @@ export async function queryStaleIssues(token: string, owner: string, repo: strin
     // but some reason schema typings i.e. thinks number may be undefined
     if (i?.number && i.title && i.author?.login) {
       const createdAt = new Date(i.createdAt);
+      const updatedAt = new Date(i.updatedAt);
       staleIssues.push({
         number: i.number,
         owner: i.author.login,
         title: i.title,
-        createdAt
+        createdAt,
+        updatedAt
       });
     }
   });

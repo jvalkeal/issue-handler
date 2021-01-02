@@ -507,11 +507,13 @@ function queryStaleIssues(token, owner, repo) {
             // but some reason schema typings i.e. thinks number may be undefined
             if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
                 const createdAt = new Date(i.createdAt);
+                const updatedAt = new Date(i.updatedAt);
                 staleIssues.push({
                     number: i.number,
                     owner: i.author.login,
                     title: i.title,
-                    createdAt
+                    createdAt,
+                    updatedAt
                 });
             }
         });
@@ -14817,8 +14819,8 @@ exports.handleStaleIssues = handleStaleIssues;
 function processIssues(staleIssues, config) {
     const staleDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeClose, 'days');
     for (const i of staleIssues) {
-        if (i.createdAt) {
-            const diffInDays = moment_1.default(i.createdAt).diff(moment_1.default(staleDate), 'days');
+        if (i.updatedAt) {
+            const diffInDays = moment_1.default(i.updatedAt).diff(moment_1.default(staleDate), 'days');
             core.info(`diff ${diffInDays}`);
             if (diffInDays > 0) {
                 core.info(`Found stale issue #${i.number} '${i.title}'`);
