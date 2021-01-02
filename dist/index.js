@@ -513,7 +513,7 @@ function simpleQuery2(token, owner, repo) {
                 authorization: `token ${token}`
             }
         });
-        const xxx2 = (_a = xxx.issues.nodes) === null || _a === void 0 ? void 0 : _a.map(n => n === null || n === void 0 ? void 0 : n.timelineItems);
+        const xxx2 = (_a = xxx.repository.issues.nodes) === null || _a === void 0 ? void 0 : _a.map(n => n === null || n === void 0 ? void 0 : n.timelineItems);
         return xxx2;
     });
 }

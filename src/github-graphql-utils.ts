@@ -35,7 +35,7 @@ export async function simpleQuery(token: string, owner: string, repo: string): P
 }
 
 export async function simpleQuery2(token: string, owner: string, repo: string): Promise<any> {
-  const xxx = await graphql<Repository>({
+  const xxx = await graphql<{repository: Repository}>({
     query: `
       query last($owner: String!, $repo: String!) {
         repository(owner:$owner, name:$repo) {
@@ -64,6 +64,6 @@ export async function simpleQuery2(token: string, owner: string, repo: string): 
       authorization: `token ${token}`
     }
   });
-  const xxx2 = xxx.issues.nodes?.map(n => n?.timelineItems);
+  const xxx2 = xxx.repository.issues.nodes?.map(n => n?.timelineItems);
   return xxx2;
 }
