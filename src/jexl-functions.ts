@@ -10,7 +10,9 @@ import {
   isAction,
   getLabelsStartsWith,
   containsAnyLabel,
-  labeledStartsWith
+  labeledStartsWith,
+  containsAnyEvent,
+  containsAnyAction
 } from './context-utils';
 import { JSONObject } from './interfaces';
 import { logFunctionDeprecation } from './logging';
@@ -35,7 +37,9 @@ export function addJexlFunctions(jexl: Jexl, token: string, githubContext: Conte
 
   // generic
   jexl.addFunction('isEvent', isEventFunction(githubContext));
+  jexl.addFunction('eventContainsAny', eventContainsAnyFunction(githubContext));
   jexl.addFunction('isAction', isActionFunction(githubContext));
+  jexl.addFunction('actionContainsAny', actionContainsAnyFunction(githubContext));
   jexl.addFunction('isMilestone', isMilestoneFunction(githubContext));
 
   jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
@@ -129,12 +133,24 @@ function isEventFunction(githubContext: Context): FunctionFunction {
   };
 }
 
+function eventContainsAnyFunction(githubContext: Context): FunctionFunction {
+  return (event: string | string[]): boolean => {
+    return containsAnyEvent(githubContext, event);
+  };
+}
+
 /**
  * Creates a function checking if action type equals.
  */
 function isActionFunction(githubContext: Context): FunctionFunction {
   return (action: string): boolean => {
     return isAction(githubContext, action);
+  };
+}
+
+function actionContainsAnyFunction(githubContext: Context): FunctionFunction {
+  return (events: string | string[]) => {
+    return containsAnyAction(githubContext, events);
   };
 }
 
