@@ -6,7 +6,9 @@
 - <<jexl-functions-addLabel>>
 - <<jexl-functions-removeLabel>>
 - <<jexl-functions-isEvent>>
+- <<jexl-functions-eventContainsAny>>
 - <<jexl-functions-isAction>>
+- <<jexl-functions-actionContainsAny>>
 
 [[jexl-functions-labelsContainsAll]]
 ## labelsContainsAll
@@ -81,7 +83,7 @@ boolean indicating if labels exists
 
 ### Summary
 
-Checks if actions has a given event
+Checks if action has a given event
 
 ----
 isEvent('issues')
@@ -100,6 +102,32 @@ isEvent('issues')
 ### Return Value
 
 boolean indicating if event matches
+
+[[jexl-functions-eventContainsAny]]
+## eventContainsAny
+
+### Summary
+
+Checks if action has any given event
+
+----
+eventContainsAny('issues')
+eventContainsAny(['issues', 'pull_request'])
+----
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|events
+|Events to check, can be string or string[]
+|===
+
+### Return Value
+
+boolean indicating if event exists
 
 [[jexl-functions-addLabel]]
 ## addLabel
@@ -158,7 +186,7 @@ void when returned
 
 ### Summary
 
-Checks if actions has a given event type
+Checks if action has a given event type
 
 ----
 isAction('labeled')
@@ -172,6 +200,32 @@ isAction('labeled')
 
 |event
 |Action type to check, can be string
+|===
+
+### Return Value
+
+boolean indicating if event type matches
+
+[[jexl-functions-actionContainsAny]]
+## actionContainsAny
+
+### Summary
+
+Checks if action has any given event type
+
+----
+actionContainsAny('issues')
+actionContainsAny(['issues', 'pull_request'])
+----
+
+### Parameters
+
+[Attributes]
+|===
+|Name |Description
+
+|actions
+|Actionss to check, can be string or string[]
 |===
 
 ### Return Value

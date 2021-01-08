@@ -64,10 +64,28 @@ describe('jexl-functions tests', () => {
     expect(result).toBeTruthy();
   });
 
+  it('eventContainsAny returns correct result', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, {});
+    expect(await jexl.eval('eventContainsAny("issues")')).toBeTruthy();
+    expect(await jexl.eval('eventContainsAny("fake")')).toBeFalsy();
+    expect(await jexl.eval('eventContainsAny(["issues"])')).toBeTruthy();
+    expect(await jexl.eval('eventContainsAny(["issues", "fake"])')).toBeTruthy();
+    expect(await jexl.eval('eventContainsAny(["fake"])')).toBeFalsy();
+  });
+
   it('isAction returns true if event is', async () => {
     addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, {});
     const result: boolean = await jexl.eval('isAction("unlabeled")');
     expect(result).toBeTruthy();
+  });
+
+  it('actionContainsAny returns correct result', async () => {
+    addJexlFunctions(jexl, 'token', CONTEXT_UNLABELED_ISSUE, {});
+    expect(await jexl.eval('actionContainsAny("unlabeled")')).toBeTruthy();
+    expect(await jexl.eval('actionContainsAny("fake")')).toBeFalsy();
+    expect(await jexl.eval('actionContainsAny(["unlabeled"])')).toBeTruthy();
+    expect(await jexl.eval('actionContainsAny(["unlabeled", "fake"])')).toBeTruthy();
+    expect(await jexl.eval('actionContainsAny(["fake"])')).toBeFalsy();
   });
 
   it('isMilestone returns false if no milestone', async () => {

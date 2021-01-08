@@ -62,6 +62,16 @@ export function isEvent(githubContext: Context, event: string): boolean {
   return githubContext.eventName === event;
 }
 
+export function containsAnyEvent(githubContext: Context, events: string | string[]): boolean {
+  const eventsToCheck = typeof events === 'string' ? [events] : events;
+  return eventsToCheck.some(e => e === githubContext.eventName);
+}
+
+export function containsAnyAction(githubContext: Context, actions: string | string[]): boolean {
+  const actionsToCheck = typeof actions === 'string' ? [actions] : actions;
+  return actionsToCheck.some(e => e === githubContext.payload.action);
+}
+
 /**
  * Checks if given action is same as in a context.
  */
