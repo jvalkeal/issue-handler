@@ -4,6 +4,7 @@ import { inspect } from 'util';
 import moment from 'moment';
 import { queryStaleIssues, StaleIssue } from './github-graphql-utils';
 import { ExpressionContext } from './interfaces';
+import { addLabelsToIssue, closeIssue } from './github-utils';
 
 export interface StaleIssues {
   issueHandleSince?: string;
@@ -20,6 +21,7 @@ export interface StaleIssues {
 export interface StaleIssuesConfig {
   issueDaysBeforeStale: number;
   issueDaysBeforeClose: number;
+  issueStaleLabel: string;
 }
 
 /**
@@ -43,23 +45,49 @@ export async function handleStaleIssues(
   const staleIssues = await queryStaleIssues(token, owner, repo);
   core.info(`Result queryStaleIssues ${inspect(staleIssues, true, 10)}`);
 
-  processIssues(staleIssues, config);
+  await processIssues(token, expressionContext, staleIssues, config);
 }
 
-function processIssues(staleIssues: StaleIssue[], config: StaleIssuesConfig) {
+async function processIssues(
+  token: string,
+  expressionContext: ExpressionContext,
+  staleIssues: StaleIssue[],
+  config: StaleIssuesConfig
+) {
+  // when issues become stale
   core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
   const staleDate = moment(new Date()).subtract(config.issueDaysBeforeStale, 'days');
   core.info(`staleDate ${staleDate}`);
+
+  // going through issues
   for (const i of staleIssues) {
+
+    // const hasStaleLabel = i.hasStaleLabel;
+
     core.info(`updatedAt ${i.updatedAt}`);
     if (i.updatedAt) {
       const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
       core.info(`diff ${diffInDays}`);
-      if (diffInDays < 0) {
-        core.info(`Found stale issue #${i.number} '${i.title}'`);
+      if (diffInDays > 0) {
+        await handleStaleIssue(token, expressionContext, i, config);
       }
     }
   }
+}
+
+async function handleStaleIssue(
+  token: string,
+  expressionContext: ExpressionContext,
+  staleIssue: StaleIssue,
+  config: StaleIssuesConfig
+) {
+  core.info(`Handling stale issue #${staleIssue.number} '${staleIssue.title}'`);
+  const owner = expressionContext.context.repo.owner;
+  const repo = expressionContext.context.repo.repo;
+
+  await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+
+  // await closeIssue(token, owner, repo, staleIssue.number);
 }
 
 /**
@@ -68,6 +96,7 @@ function processIssues(staleIssues: StaleIssue[], config: StaleIssuesConfig) {
 function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
   return {
     issueDaysBeforeStale: recipe.issueDaysBeforeStale || 60,
-    issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7
+    issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7,
+    issueStaleLabel: recipe.issueStaleLabel || 'stale'
   };
 }
