@@ -87,7 +87,7 @@ describe('manage-backport-issues tests', () => {
   it('creates two issues when labeled same time', async () => {
     const action: ManageBackportIssues = {
       whenLabeled: "labeledStartsWith(['branch/'])",
-      whenLabels: "labelsContains(['for/backport'])",
+      whenLabels: "labelsContainsAny(['for/backport'])",
       fromLabels: "labeledStartsWith(['branch/'])",
       additionalLabels: "'fakelabel'",
       body: "'Backport #' + number"
@@ -137,7 +137,7 @@ describe('manage-backport-issues tests', () => {
   it('creates two issues when labeled individually', async () => {
     const action: ManageBackportIssues = {
       whenLabeled: "labeledStartsWith(['branch/'])",
-      whenLabels: "labelsContains(['for/backport'])",
+      whenLabels: "labelsContainsAny(['for/backport'])",
       fromLabels: "labeledStartsWith(['branch/'])",
       additionalLabels: "'fakelabel'",
       body: "'Backport #' + number"
@@ -184,7 +184,7 @@ describe('manage-backport-issues tests', () => {
   it('closes one issue when unlabeled', async () => {
     const action: ManageBackportIssues = {
       whenUnlabeled: "labeledStartsWith(['branch/'])",
-      whenLabels: "labelsContains(['for/backport'])",
+      whenLabels: "labelsContainsAny(['for/backport'])",
       fromLabels: "labeledStartsWith(['branch/'])",
       additionalLabels: "'fakelabel'",
       body: "'Backport #' + number"
@@ -216,7 +216,7 @@ describe('manage-backport-issues tests', () => {
   it('creates issue when pr labeled', async () => {
     const action: ManageBackportIssues = {
       whenLabeled: "labeledStartsWith(['branch/'])",
-      whenLabels: "labelsContains(['for/backport'])",
+      whenLabels: "labelsContainsAny(['for/backport'])",
       fromLabels: "labeledStartsWith(['branch/'])",
       additionalLabels: "'fakelabel'",
       body: "'Backport #' + number"

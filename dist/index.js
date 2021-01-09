@@ -2011,7 +2011,7 @@ exports.isAction = exports.containsAnyAction = exports.containsAnyEvent = export
  */
 function containsLabels(githubContext, labels) {
     var _a;
-    const payloadLabelObjects = (_a = githubContext.payload.issue) === null || _a === void 0 ? void 0 : _a.labels;
+    const payloadLabelObjects = (_a = (githubContext.payload.issue || githubContext.payload.pull_request)) === null || _a === void 0 ? void 0 : _a.labels;
     if (payloadLabelObjects) {
         const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
         const existingLabels = payloadLabelObjects.map(l => l.name);
@@ -2025,7 +2025,7 @@ function containsLabels(githubContext, labels) {
 exports.containsLabels = containsLabels;
 function containsAnyLabel(githubContext, labels) {
     var _a;
-    const payloadLabelObjects = (_a = githubContext.payload.issue) === null || _a === void 0 ? void 0 : _a.labels;
+    const payloadLabelObjects = (_a = (githubContext.payload.issue || githubContext.payload.pull_request)) === null || _a === void 0 ? void 0 : _a.labels;
     if (payloadLabelObjects) {
         const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
         const existingLabels = payloadLabelObjects.map(l => l.name);
@@ -2056,7 +2056,7 @@ function labeledStartsWith(githubContext, labels) {
 exports.labeledStartsWith = labeledStartsWith;
 function getLabelsStartsWith(githubContext, labels) {
     var _a;
-    const payloadLabelObjects = (_a = githubContext.payload.issue) === null || _a === void 0 ? void 0 : _a.labels;
+    const payloadLabelObjects = (_a = (githubContext.payload.issue || githubContext.payload.pull_request)) === null || _a === void 0 ? void 0 : _a.labels;
     if (payloadLabelObjects) {
         return payloadLabelObjects.filter(rl => labels.some(l => rl.name.startsWith(l))).map(l => l.name);
     }
@@ -2163,6 +2163,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resultAsStringArray = exports.isResultTruthy = exports.evaluateAndLog = void 0;
 const core = __importStar(__webpack_require__(470));
 const util_1 = __webpack_require__(669);
+// const isError = function(e){
+//   return e && e.stack && e.message;
+// }
+const isError = (e) => e && e.stack && e.message;
 function evaluateAndLog(jexl, expression, context) {
     return __awaiter(this, void 0, void 0, function* () {
         return jexl.eval(expression, context).then(value => {
@@ -2176,6 +2180,9 @@ function evaluateAndLog(jexl, expression, context) {
 }
 exports.evaluateAndLog = evaluateAndLog;
 function isResultTruthy(result) {
+    if (isError(result)) {
+        return false;
+    }
     if (Array.isArray(result)) {
         return result.length > 0;
     }
@@ -2185,6 +2192,9 @@ function isResultTruthy(result) {
 }
 exports.isResultTruthy = isResultTruthy;
 function resultAsStringArray(result) {
+    if (isError(result)) {
+        return [];
+    }
     if (Array.isArray(result)) {
         return result;
     }

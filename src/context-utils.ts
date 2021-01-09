@@ -7,7 +7,9 @@ import { Context } from '@actions/github/lib/context';
  * @returns boolean indicating if all labels existed
  */
 export function containsLabels(githubContext: Context, labels: string | string[]): boolean {
-  const payloadLabelObjects = githubContext.payload.issue?.labels as { name: string }[];
+  const payloadLabelObjects = (githubContext.payload.issue || githubContext.payload.pull_request)?.labels as {
+    name: string;
+  }[];
   if (payloadLabelObjects) {
     const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
     const existingLabels = payloadLabelObjects.map(l => l.name);
@@ -20,7 +22,9 @@ export function containsLabels(githubContext: Context, labels: string | string[]
 }
 
 export function containsAnyLabel(githubContext: Context, labels: string[]): boolean {
-  const payloadLabelObjects = githubContext.payload.issue?.labels as { name: string }[];
+  const payloadLabelObjects = (githubContext.payload.issue || githubContext.payload.pull_request)?.labels as {
+    name: string;
+  }[];
   if (payloadLabelObjects) {
     const labelsToCheck = typeof labels === 'string' ? [labels] : labels;
     const existingLabels = payloadLabelObjects.map(l => l.name);
@@ -48,7 +52,9 @@ export function labeledStartsWith(githubContext: Context, labels: string[]): str
 }
 
 export function getLabelsStartsWith(githubContext: Context, labels: string[]): string[] {
-  const payloadLabelObjects = githubContext.payload.issue?.labels as { name: string }[];
+  const payloadLabelObjects = (githubContext.payload.issue || githubContext.payload.pull_request)?.labels as {
+    name: string;
+  }[];
   if (payloadLabelObjects) {
     return payloadLabelObjects.filter(rl => labels.some(l => rl.name.startsWith(l))).map(l => l.name);
   }
