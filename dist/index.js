@@ -446,16 +446,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryStaleIssues3 = exports.queryStaleIssues = void 0;
+exports.queryStaleIssues = void 0;
 const graphql_1 = __webpack_require__(898);
-// async function fetchStarGazers(octokit, { results, cursor } = { results: [] }) {
-//   const { repository: { stargazers } } = await octokit.graphql(QUERY, { cursor });
-//   results.push(...stargazers.nodes);
-//   if (stargazers.pageInfo.hasNextPage) {
-//     await fetchStarGazers(octokit, { results, cursor: stargazers.pageInfo.endCursor });
-//   }
-//   return results;
-// }
 function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results = []) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
@@ -509,15 +501,17 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
         }).then(res => res.repository.issues);
         const staleIssues = [];
         (_a = issues.nodes) === null || _a === void 0 ? void 0 : _a.forEach(i => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c;
             // if just to get past beyond ts null checks, we know stuff is there
             // but some reason schema typings i.e. thinks number may be undefined
             if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
                 const createdAt = new Date(i.createdAt);
                 const updatedAt = new Date(i.updatedAt);
-                const hasStaleLabel = ((_c = (_b = i.labels) === null || _b === void 0 ? void 0 : _b.nodes) === null || _c === void 0 ? void 0 : _c.some(l => (l === null || l === void 0 ? void 0 : l.name) === staleLabel)) || false;
-                const labeledCreatedAt = (_e = (_d = i.timelineItems.nodes) === null || _d === void 0 ? void 0 : _d.filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').find(ti => ti)) === null || _e === void 0 ? void 0 : _e.createdAt;
-                const staleAt = new Date(labeledCreatedAt);
+                // should we get label from labels or events
+                // const hasStaleLabel = i.labels?.nodes?.some(l => l?.name === staleLabel) || false;
+                const labeledCreatedAt = (_c = (_b = i.timelineItems.nodes) === null || _b === void 0 ? void 0 : _b.filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').find(ti => ti)) === null || _c === void 0 ? void 0 : _c.createdAt;
+                const hasStaleLabel = labeledCreatedAt !== undefined;
+                const staleAt = labeledCreatedAt !== undefined ? new Date(labeledCreatedAt) : undefined;
                 staleIssues.push({
                     number: i.number,
                     owner: i.author.login,
@@ -537,84 +531,6 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
     });
 }
 exports.queryStaleIssues = queryStaleIssues;
-/**
- * Query open issues from a repo by adding fields which is needed
- * to eventually come up with an actual stale issues.
- */
-function queryStaleIssues3(token, owner, repo) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        const issues = yield graphql_1.graphql({
-            query: `
-      query staleIssues($owner: String!, $repo: String!) {
-        repository(owner:$owner, name:$repo) {
-          issues(last: 100, states:OPEN) {
-            nodes {
-              number
-              title
-              createdAt
-              updatedAt
-              author {
-                login
-              }
-              timelineItems(last: 10, itemTypes: [LABELED_EVENT,ISSUE_COMMENT]) {
-                totalCount
-                nodes {
-                  ... on LabeledEvent {
-                    __typename
-                    createdAt
-                    label {
-                      name
-                    }
-                  }
-                  ... on IssueComment {
-                    __typename
-                    createdAt
-                    author {
-                      login
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `,
-            owner,
-            repo,
-            headers: {
-                authorization: `token ${token}`
-            }
-        }).then(res => res.repository.issues);
-        // we now have a query result so go through it and come up with
-        // an actual stale issues.
-        const staleIssues = [];
-        (_a = issues.nodes) === null || _a === void 0 ? void 0 : _a.forEach(i => {
-            var _a, _b, _c, _d, _e;
-            // if just to get past beyond ts null checks, we know stuff is there
-            // but some reason schema typings i.e. thinks number may be undefined
-            if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
-                const createdAt = new Date(i.createdAt);
-                const updatedAt = new Date(i.updatedAt);
-                const hasStaleLabel = ((_c = (_b = i.labels) === null || _b === void 0 ? void 0 : _b.nodes) === null || _c === void 0 ? void 0 : _c.some(l => (l === null || l === void 0 ? void 0 : l.name) === 'stale')) || false;
-                const labeledCreatedAt = (_e = (_d = i.timelineItems.nodes) === null || _d === void 0 ? void 0 : _d.filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').find(ti => ti)) === null || _e === void 0 ? void 0 : _e.createdAt;
-                const staleAt = new Date(labeledCreatedAt);
-                staleIssues.push({
-                    number: i.number,
-                    owner: i.author.login,
-                    title: i.title,
-                    createdAt,
-                    updatedAt,
-                    hasStaleLabel,
-                    staleAt
-                });
-            }
-        });
-        return staleIssues;
-    });
-}
-exports.queryStaleIssues3 = queryStaleIssues3;
 
 
 /***/ }),
@@ -14983,6 +14899,8 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) 
             }
         }
         else {
+            // if stale label exists, check timeline when it was marked stale,
+            // then close if stale enough time
             if (moment_1.default(staleIssue.staleAt) < closeDate) {
                 core.info(`Found issue #${staleIssue.number} to close as stale`);
                 if (!dryRun) {
@@ -14990,8 +14908,6 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) 
                 }
             }
         }
-        // if stale label exists, check timeline when it was marked stale,
-        // then close if stale enough time
         // await closeIssue(token, owner, repo, staleIssue.number);
     });
 }

@@ -31,12 +31,12 @@ describe('github-graphql-utils tests', () => {
     expect(res[0].title).toBe('title1');
     expect(res[0].owner).toBe('user1');
     expect(res[0].hasStaleLabel).toBeFalsy();
-    // expect(res[0].staleAt).toBeNull();
+    expect(res[0].staleAt).toBeUndefined()
     expect(res[1].number).toBe(2);
     expect(res[1].title).toBe('title2');
     expect(res[1].owner).toBe('user2');
-    expect(res[1].hasStaleLabel).toBeFalsy();
-    // expect(res[1].staleAt).toBeNull();
+    expect(res[1].hasStaleLabel).toBeTruthy();
+    expect(res[1].staleAt).not.toBeUndefined();
   });
 
   it('queryStaleIssues paging from page2', async () => {
@@ -56,7 +56,7 @@ describe('github-graphql-utils tests', () => {
     expect(res[0].number).toBe(2);
     expect(res[0].title).toBe('title2');
     expect(res[0].owner).toBe('user2');
-    expect(res[0].hasStaleLabel).toBeFalsy();
-    // expect(res[1].staleAt).toBeNull();
+    expect(res[0].hasStaleLabel).toBeTruthy();
+    expect(res[0].staleAt).not.toBeUndefined();
   });
 });

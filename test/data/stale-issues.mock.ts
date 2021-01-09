@@ -184,6 +184,15 @@ export const GQ_PAGE2 = {
               login: 'user2'
             },
             timelineItems: {
+              nodes: [
+                {
+                  __typename: 'LabeledEvent',
+                  createdAt: NOWMINUS3D,
+                  label: {
+                    name: 'status/stale'
+                  }
+                }
+              ]
             }
           }
         ]

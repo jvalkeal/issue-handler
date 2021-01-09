@@ -96,6 +96,8 @@ async function handleStaleIssue(
       await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
     }
   } else {
+    // if stale label exists, check timeline when it was marked stale,
+    // then close if stale enough time
     if (moment(staleIssue.staleAt) < closeDate) {
       core.info(`Found issue #${staleIssue.number} to close as stale`);
       if (!dryRun) {
@@ -104,8 +106,6 @@ async function handleStaleIssue(
     }
   }
 
-  // if stale label exists, check timeline when it was marked stale,
-  // then close if stale enough time
 
   // await closeIssue(token, owner, repo, staleIssue.number);
 }
