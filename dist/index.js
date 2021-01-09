@@ -14870,6 +14870,8 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
         core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
         const staleDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeStale, 'days');
         core.info(`staleDate ${staleDate}`);
+        const closeDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeClose, 'days').toDate();
+        core.info(`closeDate ${closeDate}`);
         // going through issues
         for (const i of staleIssues) {
             // const hasStaleLabel = i.hasStaleLabel;
@@ -14878,16 +14880,16 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
                 const diffInDays = moment_1.default(staleDate).diff(moment_1.default(i.updatedAt), 'days');
                 core.debug(`#${i.number} stale diff ${diffInDays} days`);
                 if (diffInDays > 0) {
-                    yield handleStaleIssue(token, expressionContext, i, config, dryRun);
+                    yield handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
                 }
             }
         }
     });
 }
-function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) {
+function handleStaleIssue(token, expressionContext, staleIssue, config, closeDate, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
-        const closeDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeClose, 'days');
-        const diffInDays = moment_1.default(closeDate).diff(moment_1.default(new Date()), 'days');
+        // const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
+        // const diffInDays = moment(closeDate).diff(moment(new Date()), 'days');
         core.info(`Handling stale issue #${staleIssue.number} '${staleIssue.title}'`);
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
@@ -14899,16 +14901,17 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) 
             }
         }
         else {
+            core.info(`XXX1 ${staleIssue.staleAt} ${closeDate}`);
             // if stale label exists, check timeline when it was marked stale,
             // then close if stale enough time
-            if (moment_1.default(staleIssue.staleAt) < closeDate) {
+            // if (moment(staleIssue.staleAt) < closeDate) {
+            if (staleIssue.staleAt && staleIssue.staleAt < closeDate) {
                 core.info(`Found issue #${staleIssue.number} to close as stale`);
                 if (!dryRun) {
                     yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
                 }
             }
         }
-        // await closeIssue(token, owner, repo, staleIssue.number);
     });
 }
 /**

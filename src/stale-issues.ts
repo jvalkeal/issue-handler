@@ -60,6 +60,8 @@ async function processIssues(
   core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
   const staleDate = moment(new Date()).subtract(config.issueDaysBeforeStale, 'days');
   core.info(`staleDate ${staleDate}`);
+  const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days').toDate();
+  core.info(`closeDate ${closeDate}`);
 
   // going through issues
   for (const i of staleIssues) {
@@ -70,7 +72,7 @@ async function processIssues(
       const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
       core.debug(`#${i.number} stale diff ${diffInDays} days`);
       if (diffInDays > 0) {
-        await handleStaleIssue(token, expressionContext, i, config, dryRun);
+        await handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
       }
     }
   }
@@ -81,10 +83,11 @@ async function handleStaleIssue(
   expressionContext: ExpressionContext,
   staleIssue: StaleIssue,
   config: StaleIssuesConfig,
+  closeDate: Date,
   dryRun: boolean
 ) {
-  const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
-  const diffInDays = moment(closeDate).diff(moment(new Date()), 'days');
+  // const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
+  // const diffInDays = moment(closeDate).diff(moment(new Date()), 'days');
   core.info(`Handling stale issue #${staleIssue.number} '${staleIssue.title}'`);
   const owner = expressionContext.context.repo.owner;
   const repo = expressionContext.context.repo.repo;
@@ -96,18 +99,17 @@ async function handleStaleIssue(
       await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
     }
   } else {
+    core.info(`XXX1 ${staleIssue.staleAt} ${closeDate}`)
     // if stale label exists, check timeline when it was marked stale,
     // then close if stale enough time
-    if (moment(staleIssue.staleAt) < closeDate) {
+    // if (moment(staleIssue.staleAt) < closeDate) {
+    if (staleIssue.staleAt && staleIssue.staleAt < closeDate) {
       core.info(`Found issue #${staleIssue.number} to close as stale`);
       if (!dryRun) {
         await closeIssue(token, owner, repo, staleIssue.number);
       }
     }
   }
-
-
-  // await closeIssue(token, owner, repo, staleIssue.number);
 }
 
 /**

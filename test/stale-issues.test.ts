@@ -18,7 +18,7 @@ describe('stale-issues tests', () => {
     data: {}
   };
 
-  it('labels 1 issue stale from 1 - default label', async () => {
+  xit('labels 1 issue stale from 1 - default label', async () => {
     const spy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
       return Promise.resolve();
     });
@@ -35,7 +35,7 @@ describe('stale-issues tests', () => {
     expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
   });
 
-  it('labels 1 issue stale from 1 - change label', async () => {
+  xit('labels 1 issue stale from 1 - change label', async () => {
     const spy1 = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
       return Promise.resolve();
     });
