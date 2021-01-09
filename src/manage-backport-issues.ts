@@ -3,7 +3,7 @@ import { inspect } from 'util';
 import { Jexl } from 'jexl';
 import { ExpressionContext } from './interfaces';
 import { evaluateAndLog, isResultTruthy, resultAsStringArray } from './jexl-utils';
-import { isAction, isEvent } from './context-utils';
+import { containsAnyEvent, isAction, isEvent } from './context-utils';
 import { closeIssue, createIssue, findIssuesWithLabels } from './github-utils';
 
 /**
@@ -33,8 +33,8 @@ export async function handleManageBackportIssues(
   const issueNumber = expressionContext.context.issue.number;
   const issueTitle = expressionContext.title;
 
-  // only handle issues
-  if (!isEvent(expressionContext.context, 'issues')) {
+  // only handle issues and pr's
+  if (!containsAnyEvent(expressionContext.context, ['issues', 'pull_request'])) {
     return;
   }
 
