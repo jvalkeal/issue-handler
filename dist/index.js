@@ -707,6 +707,41 @@ module.exports.Jexl = Jexl;
 
 /***/ }),
 
+/***/ 71:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.logFunctionDeprecation = void 0;
+const core = __importStar(__webpack_require__(470));
+function logFunctionDeprecation(oldName, newName, whenRemoved) {
+    core.warning(`Function '${oldName}' is deprecated and will be removed in '${whenRemoved}',  use '${newName}'`);
+}
+exports.logFunctionDeprecation = logFunctionDeprecation;
+
+
+/***/ }),
+
 /***/ 82:
 /***/ (function(__unusedmodule, exports) {
 
@@ -1967,7 +2002,7 @@ var RecipeType;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isAction = exports.isEvent = exports.getLabelsStartsWith = exports.labeledStartsWith = exports.containsLabeled = exports.isLabeled = exports.containsAnyLabel = exports.containsLabels = void 0;
+exports.isAction = exports.containsAnyAction = exports.containsAnyEvent = exports.isEvent = exports.getLabelsStartsWith = exports.labeledStartsWith = exports.containsLabeled = exports.isLabeled = exports.containsAnyLabel = exports.containsLabels = void 0;
 /**
  * Checks if issue contains all given labels.
  *
@@ -2035,6 +2070,16 @@ function isEvent(githubContext, event) {
     return githubContext.eventName === event;
 }
 exports.isEvent = isEvent;
+function containsAnyEvent(githubContext, events) {
+    const eventsToCheck = typeof events === 'string' ? [events] : events;
+    return eventsToCheck.some(e => e === githubContext.eventName);
+}
+exports.containsAnyEvent = containsAnyEvent;
+function containsAnyAction(githubContext, actions) {
+    const actionsToCheck = typeof actions === 'string' ? [actions] : actions;
+    return actionsToCheck.some(e => e === githubContext.payload.action);
+}
+exports.containsAnyAction = containsAnyAction;
 /**
  * Checks if given action is same as in a context.
  */
@@ -2348,8 +2393,8 @@ function handleManageBackportIssues(recipe, jexl, expressionContext, token) {
         const repo = expressionContext.context.repo.repo;
         const issueNumber = expressionContext.context.issue.number;
         const issueTitle = expressionContext.title;
-        // only handle issues
-        if (!context_utils_1.isEvent(expressionContext.context, 'issues')) {
+        // only handle issues and pr's
+        if (!context_utils_1.containsAnyEvent(expressionContext.context, ['issues', 'pull_request'])) {
             return;
         }
         const title = `backport(${issueNumber}): ${issueTitle}`;
@@ -6725,6 +6770,7 @@ const util_1 = __webpack_require__(669);
 const jexl_1 = __webpack_require__(65);
 const github_utils_1 = __webpack_require__(888);
 const context_utils_1 = __webpack_require__(269);
+const logging_1 = __webpack_require__(71);
 /**
  * Add all supported jexl functions.
  */
@@ -6738,10 +6784,13 @@ function addJexlFunctions(jexl, token, githubContext, data) {
     jexl.addFunction('labeledStartsWith', labeledStartsWithFunction(githubContext));
     // issue
     jexl.addFunction('labelIssue', labelIssueFunction(token, githubContext));
+    jexl.addFunction('addLabel', addLabelFunction(token, githubContext));
     jexl.addFunction('removeLabel', removeLabelFunction(token, githubContext));
     // generic
     jexl.addFunction('isEvent', isEventFunction(githubContext));
+    jexl.addFunction('eventContainsAny', eventContainsAnyFunction(githubContext));
     jexl.addFunction('isAction', isActionFunction(githubContext));
+    jexl.addFunction('actionContainsAny', actionContainsAnyFunction(githubContext));
     jexl.addFunction('isMilestone', isMilestoneFunction(githubContext));
     jexl.addFunction('createIssue', createIssueFunction(token, githubContext));
     jexl.addFunction('labelRemoved', labelRemovedFunction(githubContext));
@@ -6824,12 +6873,22 @@ function isEventFunction(githubContext) {
         return context_utils_1.isEvent(githubContext, event);
     };
 }
+function eventContainsAnyFunction(githubContext) {
+    return (event) => {
+        return context_utils_1.containsAnyEvent(githubContext, event);
+    };
+}
 /**
  * Creates a function checking if action type equals.
  */
 function isActionFunction(githubContext) {
     return (action) => {
         return context_utils_1.isAction(githubContext, action);
+    };
+}
+function actionContainsAnyFunction(githubContext) {
+    return (events) => {
+        return context_utils_1.containsAnyAction(githubContext, events);
     };
 }
 /**
@@ -6858,6 +6917,13 @@ function hasLabelsFunction(githubContext) {
  * Creates a function adding label to an issue.
  */
 function labelIssueFunction(token, githubContext) {
+    return (labels) => __awaiter(this, void 0, void 0, function* () {
+        logging_1.logFunctionDeprecation('labelIssue', 'addLabel', 'v0.0.6');
+        const labelsToUse = typeof labels === 'string' ? [labels] : labels;
+        yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
+    });
+}
+function addLabelFunction(token, githubContext) {
     return (labels) => __awaiter(this, void 0, void 0, function* () {
         const labelsToUse = typeof labels === 'string' ? [labels] : labels;
         yield github_utils_1.addLabelsToIssue(token, githubContext.repo.owner, githubContext.repo.repo, githubContext.issue.number, labelsToUse);
@@ -8945,13 +9011,16 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var request = __webpack_require__(753);
 var universalUserAgent = __webpack_require__(796);
 
-const VERSION = "4.5.2";
+const VERSION = "4.5.8";
 
 class GraphqlError extends Error {
   constructor(request, response) {
     const message = response.data.errors[0].message;
     super(message);
     Object.assign(this, response.data);
+    Object.assign(this, {
+      headers: response.headers
+    });
     this.name = "GraphqlError";
     this.request = request; // Maintains proper stack trace (only available on V8)
 
@@ -8965,13 +9034,18 @@ class GraphqlError extends Error {
 }
 
 const NON_VARIABLE_OPTIONS = ["method", "baseUrl", "url", "headers", "request", "query", "mediaType"];
+const GHES_V3_SUFFIX_REGEX = /\/api\/v3\/?$/;
 function graphql(request, query, options) {
-  options = typeof query === "string" ? options = Object.assign({
+  if (typeof query === "string" && options && "query" in options) {
+    return Promise.reject(new Error(`[@octokit/graphql] "query" cannot be used as variable name`));
+  }
+
+  const parsedOptions = typeof query === "string" ? Object.assign({
     query
-  }, options) : options = query;
-  const requestOptions = Object.keys(options).reduce((result, key) => {
+  }, options) : query;
+  const requestOptions = Object.keys(parsedOptions).reduce((result, key) => {
     if (NON_VARIABLE_OPTIONS.includes(key)) {
-      result[key] = options[key];
+      result[key] = parsedOptions[key];
       return result;
     }
 
@@ -8979,12 +9053,27 @@ function graphql(request, query, options) {
       result.variables = {};
     }
 
-    result.variables[key] = options[key];
+    result.variables[key] = parsedOptions[key];
     return result;
-  }, {});
+  }, {}); // workaround for GitHub Enterprise baseUrl set with /api/v3 suffix
+  // https://github.com/octokit/auth-app.js/issues/111#issuecomment-657610451
+
+  const baseUrl = parsedOptions.baseUrl || request.endpoint.DEFAULTS.baseUrl;
+
+  if (GHES_V3_SUFFIX_REGEX.test(baseUrl)) {
+    requestOptions.url = baseUrl.replace(GHES_V3_SUFFIX_REGEX, "/api/graphql");
+  }
+
   return request(requestOptions).then(response => {
     if (response.data.errors) {
+      const headers = {};
+
+      for (const key of Object.keys(response.headers)) {
+        headers[key] = response.headers[key];
+      }
+
       throw new GraphqlError(requestOptions, {
+        headers,
         data: response.data
       });
     }

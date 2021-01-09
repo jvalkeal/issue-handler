@@ -10,7 +10,8 @@ import {
   CONTEXT_LABELED_ISSUE_FAST_3,
   CONTEXT_LABELED_ISSUE_SLOW_1,
   CONTEXT_LABELED_ISSUE_SLOW_2,
-  CONTEXT_UNLABELED_ISSUE
+  CONTEXT_UNLABELED_ISSUE,
+  CONTEXT_LABELED_PR_1
 } from './mock-data';
 
 describe('manage-backport-issues tests', () => {
@@ -56,6 +57,14 @@ describe('manage-backport-issues tests', () => {
   };
   const EC_UNLABELED: ExpressionContext = {
     context: CONTEXT_UNLABELED_ISSUE,
+    body: 'fake body',
+    title: 'fake title',
+    number: 1,
+    actor: 'actor',
+    data: {}
+  };
+  const EC_LABELED_PR_1: ExpressionContext = {
+    context: CONTEXT_LABELED_PR_1,
     body: 'fake body',
     title: 'fake title',
     number: 1,
@@ -202,5 +211,43 @@ describe('manage-backport-issues tests', () => {
       .reply(200);
 
     await handleManageBackportIssues(action, jexl1, EC_UNLABELED, 'fake');
+  });
+
+  it('creates issue when pr labeled', async () => {
+    const action: ManageBackportIssues = {
+      whenLabeled: "labeledStartsWith(['branch/'])",
+      whenLabels: "labelsContains(['for/backport'])",
+      fromLabels: "labeledStartsWith(['branch/'])",
+      additionalLabels: "'fakelabel'",
+      body: "'Backport #' + number"
+    };
+
+    const jexl1 = new Jexl();
+    addJexlFunctions(jexl1, 'token', CONTEXT_LABELED_PR_1, {});
+
+    nock('https://api.github.com')
+      .persist()
+      .get('/search/issues')
+      .query(obj => {
+        return obj.q === 'repo:owner/repo is:open label:branch/2.4.x backport(1): fake title in:title';
+      })
+      .reply(200, { items: [] });
+
+    nock('https://api.github.com')
+      .post('/repos/owner/repo/issues', body => {
+        return (
+          lodash.isMatch(body, {
+            title: 'backport(1): fake title',
+            body: 'Backport #1'
+          }) &&
+          lodash.isMatch(body, {
+            labels: ['fakelabel', 'branch/2.4.x']
+          })
+        );
+      })
+      .times(1)
+      .reply(201);
+
+    await handleManageBackportIssues(action, jexl1, EC_LABELED_PR_1, 'fake');
   });
 });
