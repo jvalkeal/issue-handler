@@ -446,7 +446,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryStaleIssues = exports.queryStaleIssues2 = void 0;
+exports.queryStaleIssues3 = exports.queryStaleIssues = void 0;
 const graphql_1 = __webpack_require__(898);
 // async function fetchStarGazers(octokit, { results, cursor } = { results: [] }) {
 //   const { repository: { stargazers } } = await octokit.graphql(QUERY, { cursor });
@@ -456,7 +456,7 @@ const graphql_1 = __webpack_require__(898);
 //   }
 //   return results;
 // }
-function queryStaleIssues2(token, owner, repo, cursor = null, results = []) {
+function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results = []) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const issues = yield graphql_1.graphql({
@@ -515,7 +515,7 @@ function queryStaleIssues2(token, owner, repo, cursor = null, results = []) {
             if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
                 const createdAt = new Date(i.createdAt);
                 const updatedAt = new Date(i.updatedAt);
-                const hasStaleLabel = ((_c = (_b = i.labels) === null || _b === void 0 ? void 0 : _b.nodes) === null || _c === void 0 ? void 0 : _c.some(l => (l === null || l === void 0 ? void 0 : l.name) === 'stale')) || false;
+                const hasStaleLabel = ((_c = (_b = i.labels) === null || _b === void 0 ? void 0 : _b.nodes) === null || _c === void 0 ? void 0 : _c.some(l => (l === null || l === void 0 ? void 0 : l.name) === staleLabel)) || false;
                 const labeledCreatedAt = (_e = (_d = i.timelineItems.nodes) === null || _d === void 0 ? void 0 : _d.filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').find(ti => ti)) === null || _e === void 0 ? void 0 : _e.createdAt;
                 const staleAt = new Date(labeledCreatedAt);
                 staleIssues.push({
@@ -531,17 +531,17 @@ function queryStaleIssues2(token, owner, repo, cursor = null, results = []) {
         });
         results.push(...staleIssues);
         if ((_b = issues.pageInfo) === null || _b === void 0 ? void 0 : _b.hasNextPage) {
-            yield queryStaleIssues2(token, owner, repo, issues.pageInfo.endCursor, results);
+            yield queryStaleIssues(token, owner, repo, staleLabel, issues.pageInfo.endCursor, results);
         }
         return results;
     });
 }
-exports.queryStaleIssues2 = queryStaleIssues2;
+exports.queryStaleIssues = queryStaleIssues;
 /**
  * Query open issues from a repo by adding fields which is needed
  * to eventually come up with an actual stale issues.
  */
-function queryStaleIssues(token, owner, repo) {
+function queryStaleIssues3(token, owner, repo) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const issues = yield graphql_1.graphql({
@@ -614,7 +614,7 @@ function queryStaleIssues(token, owner, repo) {
         return staleIssues;
     });
 }
-exports.queryStaleIssues = queryStaleIssues;
+exports.queryStaleIssues3 = queryStaleIssues3;
 
 
 /***/ }),
@@ -14937,7 +14937,7 @@ function handleStaleIssues(recipe, jexl, expressionContext, token) {
         core.info(`Used config ${util_1.inspect(config)}`);
         core.info(`Doing queryStaleIssues`);
         // for now just blindly query all open issues
-        const staleIssues = yield github_graphql_utils_1.queryStaleIssues(token, owner, repo);
+        const staleIssues = yield github_graphql_utils_1.queryStaleIssues(token, owner, repo, config.issueStaleLabel);
         core.info(`Result queryStaleIssues ${util_1.inspect(staleIssues, true, 10)}`);
         yield processIssues(token, expressionContext, staleIssues, config);
     });

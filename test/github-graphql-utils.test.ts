@@ -1,6 +1,6 @@
 import nock from 'nock';
 import lodash from 'lodash';
-import { queryStaleIssues, queryStaleIssues2 } from '../src/github-graphql-utils';
+import { queryStaleIssues } from '../src/github-graphql-utils';
 import { GQ_1_STALE_HAVE_STALE_LABEL, GQ_PAGE1, GQ_PAGE2 } from './data/stale-issues.mock';
 
 describe('github-graphql-utils tests', () => {
@@ -24,7 +24,7 @@ describe('github-graphql-utils tests', () => {
       })
       .reply(200, GQ_PAGE2);
 
-    const res = await queryStaleIssues2('token', 'owner', 'repo');
+    const res = await queryStaleIssues('token', 'owner', 'repo', 'stale');
     expect(res).toBeTruthy();
     expect(res).toHaveLength(2);
     expect(res[0].number).toBe(1);
@@ -50,7 +50,7 @@ describe('github-graphql-utils tests', () => {
       })
       .reply(200, GQ_PAGE2);
 
-    const res = await queryStaleIssues2('token', 'owner', 'repo');
+    const res = await queryStaleIssues('token', 'owner', 'repo', 'stale');
     expect(res).toBeTruthy();
     expect(res).toHaveLength(1);
     expect(res[0].number).toBe(2);

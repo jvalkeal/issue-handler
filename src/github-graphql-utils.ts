@@ -20,10 +20,11 @@ export interface StaleIssue {
 //   return results;
 // }
 
-export async function queryStaleIssues2(
+export async function queryStaleIssues(
   token: string,
   owner: string,
   repo: string,
+  staleLabel: string,
   cursor: string | null = null,
   results: StaleIssue[] = []
 ): Promise<StaleIssue[]> {
@@ -84,7 +85,7 @@ export async function queryStaleIssues2(
       const createdAt = new Date(i.createdAt);
       const updatedAt = new Date(i.updatedAt);
 
-      const hasStaleLabel = i.labels?.nodes?.some(l => l?.name === 'stale') || false;
+      const hasStaleLabel = i.labels?.nodes?.some(l => l?.name === staleLabel) || false;
 
       const labeledCreatedAt = i.timelineItems.nodes
         ?.filter((ti): ti is LabeledEvent => ti?.__typename === 'LabeledEvent')
@@ -106,7 +107,7 @@ export async function queryStaleIssues2(
   results.push(...staleIssues);
 
   if (issues.pageInfo?.hasNextPage) {
-    await queryStaleIssues2(token, owner, repo, issues.pageInfo.endCursor, results);
+    await queryStaleIssues(token, owner, repo, staleLabel, issues.pageInfo.endCursor, results);
   }
 
   return results;
@@ -116,7 +117,7 @@ export async function queryStaleIssues2(
  * Query open issues from a repo by adding fields which is needed
  * to eventually come up with an actual stale issues.
  */
-export async function queryStaleIssues(token: string, owner: string, repo: string): Promise<StaleIssue[]> {
+export async function queryStaleIssues3(token: string, owner: string, repo: string): Promise<StaleIssue[]> {
   const issues = await graphql<{ repository: Repository }>({
     query: `
       query staleIssues($owner: String!, $repo: String!) {

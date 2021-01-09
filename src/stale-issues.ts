@@ -42,7 +42,7 @@ export async function handleStaleIssues(
 
   core.info(`Doing queryStaleIssues`);
   // for now just blindly query all open issues
-  const staleIssues = await queryStaleIssues(token, owner, repo);
+  const staleIssues = await queryStaleIssues(token, owner, repo, config.issueStaleLabel);
   core.info(`Result queryStaleIssues ${inspect(staleIssues, true, 10)}`);
 
   await processIssues(token, expressionContext, staleIssues, config);
