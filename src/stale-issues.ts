@@ -91,11 +91,13 @@ async function handleStaleIssue(
 
   // if no stale label, add it
   if (!staleIssue.hasStaleLabel) {
+    core.info(`Found issue #${staleIssue.number} to become stale`);
     if (!dryRun) {
       await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
     }
   } else {
     if (moment(staleIssue.staleAt) < closeDate) {
+      core.info(`Found issue #${staleIssue.number} to close as stale`);
       if (!dryRun) {
         await closeIssue(token, owner, repo, staleIssue.number);
       }

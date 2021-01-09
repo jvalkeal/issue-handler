@@ -14977,12 +14977,14 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) 
         const repo = expressionContext.context.repo.repo;
         // if no stale label, add it
         if (!staleIssue.hasStaleLabel) {
+            core.info(`Found issue #${staleIssue.number} to become stale`);
             if (!dryRun) {
                 yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
             }
         }
         else {
             if (moment_1.default(staleIssue.staleAt) < closeDate) {
+                core.info(`Found issue #${staleIssue.number} to close as stale`);
                 if (!dryRun) {
                     yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
                 }
