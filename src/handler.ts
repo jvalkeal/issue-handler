@@ -12,7 +12,7 @@ import { handleStaleIssues } from './stale-issues';
  * Main handle function which takes a json config, processes it
  * and then calls various recipes in it.
  */
-export async function handleIssue(token: string, config: string): Promise<void> {
+export async function handleIssue(token: string, config: string, dryRun: boolean): Promise<void> {
   core.debug(`github context: ${inspect(github.context, true, 10)}`);
   const configs = getHandlerConfigFromJson(config);
 
@@ -47,7 +47,7 @@ export async function handleIssue(token: string, config: string): Promise<void> 
         await handleManageBackportIssues(recipe, jexl, expressionContext, token);
         break;
       case RecipeType.staleIssues:
-        await handleStaleIssues(recipe, jexl, expressionContext, token);
+        await handleStaleIssues(recipe, jexl, expressionContext, token, dryRun);
         break;
       default:
         break;

@@ -2092,8 +2092,10 @@ function run() {
         try {
             const issueHandlerToken = inputRequired('token');
             const issueHandlerConfig = inputRequired('config');
+            const issueHandlerDryRun = Boolean(inputNotRequired('dry-run'));
             core.startGroup('Issue Handler');
-            yield handler_1.handleIssue(issueHandlerToken, issueHandlerConfig);
+            core.info('Enabling dry-run mode, no changes will be made');
+            yield handler_1.handleIssue(issueHandlerToken, issueHandlerConfig, issueHandlerDryRun);
             core.endGroup();
         }
         catch (error) {
@@ -2104,6 +2106,9 @@ function run() {
 }
 function inputRequired(id) {
     return core.getInput(id, { required: true });
+}
+function inputNotRequired(id) {
+    return core.getInput(id, { required: false });
 }
 run();
 
@@ -14827,7 +14832,7 @@ const stale_issues_1 = __webpack_require__(897);
  * Main handle function which takes a json config, processes it
  * and then calls various recipes in it.
  */
-function handleIssue(token, config) {
+function handleIssue(token, config, dryRun) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         core.debug(`github context: ${util_1.inspect(github.context, true, 10)}`);
@@ -14861,7 +14866,7 @@ function handleIssue(token, config) {
                     yield manage_backport_issues_1.handleManageBackportIssues(recipe, jexl, expressionContext, token);
                     break;
                 case interfaces_1.RecipeType.staleIssues:
-                    yield stale_issues_1.handleStaleIssues(recipe, jexl, expressionContext, token);
+                    yield stale_issues_1.handleStaleIssues(recipe, jexl, expressionContext, token, dryRun);
                     break;
                 default:
                     break;
@@ -14928,7 +14933,7 @@ const github_utils_1 = __webpack_require__(888);
 /**
  * Main hook to handle stale issues recipe.
  */
-function handleStaleIssues(recipe, jexl, expressionContext, token) {
+function handleStaleIssues(recipe, jexl, expressionContext, token, dryRun = false) {
     return __awaiter(this, void 0, void 0, function* () {
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
@@ -14939,11 +14944,11 @@ function handleStaleIssues(recipe, jexl, expressionContext, token) {
         // for now just blindly query all open issues
         const staleIssues = yield github_graphql_utils_1.queryStaleIssues(token, owner, repo, config.issueStaleLabel);
         core.info(`Result queryStaleIssues ${util_1.inspect(staleIssues, true, 10)}`);
-        yield processIssues(token, expressionContext, staleIssues, config);
+        yield processIssues(token, expressionContext, staleIssues, config, dryRun);
     });
 }
 exports.handleStaleIssues = handleStaleIssues;
-function processIssues(token, expressionContext, staleIssues, config) {
+function processIssues(token, expressionContext, staleIssues, config, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
         // when issues become stale
         core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
@@ -14957,13 +14962,13 @@ function processIssues(token, expressionContext, staleIssues, config) {
                 const diffInDays = moment_1.default(staleDate).diff(moment_1.default(i.updatedAt), 'days');
                 core.debug(`#${i.number} stale diff ${diffInDays} days`);
                 if (diffInDays > 0) {
-                    yield handleStaleIssue(token, expressionContext, i, config);
+                    yield handleStaleIssue(token, expressionContext, i, config, dryRun);
                 }
             }
         }
     });
 }
-function handleStaleIssue(token, expressionContext, staleIssue, config) {
+function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
         const closeDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeClose, 'days');
         const diffInDays = moment_1.default(closeDate).diff(moment_1.default(new Date()), 'days');
@@ -14972,11 +14977,15 @@ function handleStaleIssue(token, expressionContext, staleIssue, config) {
         const repo = expressionContext.context.repo.repo;
         // if no stale label, add it
         if (!staleIssue.hasStaleLabel) {
-            yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+            if (!dryRun) {
+                yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+            }
         }
         else {
             if (moment_1.default(staleIssue.staleAt) < closeDate) {
-                yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
+                if (!dryRun) {
+                    yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
+                }
             }
         }
         // if stale label exists, check timeline when it was marked stale,

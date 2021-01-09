@@ -31,7 +31,8 @@ export async function handleStaleIssues(
   recipe: StaleIssues,
   jexl: Jexl,
   expressionContext: ExpressionContext,
-  token: string
+  token: string,
+  dryRun: boolean = false
 ) {
   const owner = expressionContext.context.repo.owner;
   const repo = expressionContext.context.repo.repo;
@@ -45,14 +46,15 @@ export async function handleStaleIssues(
   const staleIssues = await queryStaleIssues(token, owner, repo, config.issueStaleLabel);
   core.info(`Result queryStaleIssues ${inspect(staleIssues, true, 10)}`);
 
-  await processIssues(token, expressionContext, staleIssues, config);
+  await processIssues(token, expressionContext, staleIssues, config, dryRun);
 }
 
 async function processIssues(
   token: string,
   expressionContext: ExpressionContext,
   staleIssues: StaleIssue[],
-  config: StaleIssuesConfig
+  config: StaleIssuesConfig,
+  dryRun: boolean
 ) {
   // when issues become stale
   core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
@@ -68,7 +70,7 @@ async function processIssues(
       const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
       core.debug(`#${i.number} stale diff ${diffInDays} days`);
       if (diffInDays > 0) {
-        await handleStaleIssue(token, expressionContext, i, config);
+        await handleStaleIssue(token, expressionContext, i, config, dryRun);
       }
     }
   }
@@ -78,7 +80,8 @@ async function handleStaleIssue(
   token: string,
   expressionContext: ExpressionContext,
   staleIssue: StaleIssue,
-  config: StaleIssuesConfig
+  config: StaleIssuesConfig,
+  dryRun: boolean
 ) {
   const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
   const diffInDays = moment(closeDate).diff(moment(new Date()), 'days');
@@ -88,10 +91,14 @@ async function handleStaleIssue(
 
   // if no stale label, add it
   if (!staleIssue.hasStaleLabel) {
-    await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+    if (!dryRun) {
+      await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+    }
   } else {
     if (moment(staleIssue.staleAt) < closeDate) {
-      await closeIssue(token, owner, repo, staleIssue.number);
+      if (!dryRun) {
+        await closeIssue(token, owner, repo, staleIssue.number);
+      }
     }
   }
 

@@ -6,8 +6,10 @@ async function run() {
   try {
     const issueHandlerToken = inputRequired('token');
     const issueHandlerConfig = inputRequired('config');
+    const issueHandlerDryRun = Boolean(inputNotRequired('dry-run'));
     core.startGroup('Issue Handler');
-    await handleIssue(issueHandlerToken, issueHandlerConfig);
+    core.info('Enabling dry-run mode, no changes will be made');
+    await handleIssue(issueHandlerToken, issueHandlerConfig, issueHandlerDryRun);
     core.endGroup();
   } catch (error) {
     core.debug(inspect(error));
@@ -17,6 +19,10 @@ async function run() {
 
 function inputRequired(id: string): string {
   return core.getInput(id, { required: true });
+}
+
+function inputNotRequired(id: string): string {
+  return core.getInput(id, { required: false });
 }
 
 run();
