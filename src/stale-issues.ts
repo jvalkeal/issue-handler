@@ -114,9 +114,17 @@ async function handleStaleIssue(
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
+  // const x = recipe.issueDaysBeforeStale === 0 ?
   return {
-    issueDaysBeforeStale: recipe.issueDaysBeforeStale || 60,
-    issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7,
+    issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
+    issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),
     issueStaleLabel: recipe.issueStaleLabel || 'stale'
   };
+}
+
+function numberValue(value: number | undefined, defaultValue: number) {
+  if (value === 0) {
+    return value;
+  }
+  return value || defaultValue;
 }

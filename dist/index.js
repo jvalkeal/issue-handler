@@ -14999,11 +14999,18 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) 
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe) {
+    // const x = recipe.issueDaysBeforeStale === 0 ?
     return {
-        issueDaysBeforeStale: recipe.issueDaysBeforeStale || 60,
-        issueDaysBeforeClose: recipe.issueDaysBeforeClose || 7,
+        issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
+        issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),
         issueStaleLabel: recipe.issueStaleLabel || 'stale'
     };
+}
+function numberValue(value, defaultValue) {
+    if (value === 0) {
+        return value;
+    }
+    return value || defaultValue;
 }
 
 
