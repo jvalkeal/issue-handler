@@ -1223,13 +1223,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryStaleIssuesx = exports.queryStaleIssues = void 0;
+exports.queryStaleIssues = void 0;
 const graphql_1 = __webpack_require__(898);
 const graphql_2 = __webpack_require__(232);
 const graphql_3 = __webpack_require__(194);
 function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results = []) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
+        const staleIssues = [];
         const variables = {
             owner,
             repo,
@@ -1239,9 +1240,8 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
                 authorization: `token ${token}`
             } }, variables);
         const issues = yield graphql_1.graphql(graphql_2.print(graphql_3.StaleIssues), options);
-        const staleIssues = [];
         (_b = (_a = issues.repository) === null || _a === void 0 ? void 0 : _a.issues.nodes) === null || _b === void 0 ? void 0 : _b.forEach(i => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e, _f, _g;
             // if just to get past beyond ts null checks, we know stuff is there
             // but some reason schema typings i.e. thinks number may be undefined
             if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
@@ -1251,6 +1251,8 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
                 const labeledCreatedAt = (_d = (_c = (_b = i.labeledEventsTimeline) === null || _b === void 0 ? void 0 : _b.nodes) === null || _c === void 0 ? void 0 : _c.reverse().filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').filter(ti => ti.label.name === staleLabel).find(ti => ti)) === null || _d === void 0 ? void 0 : _d.createdAt;
                 const hasStaleLabel = labeledCreatedAt !== undefined;
                 const staleAt = labeledCreatedAt !== undefined ? new Date(labeledCreatedAt) : undefined;
+                const lastComment = (_g = (_f = (_e = i.issueCommentsTimeline) === null || _e === void 0 ? void 0 : _e.nodes) === null || _f === void 0 ? void 0 : _f.reverse().filter((ic) => (ic === null || ic === void 0 ? void 0 : ic.__typename) === 'IssueComment').filter(ic => { var _a, _b; return ((_a = ic.author) === null || _a === void 0 ? void 0 : _a.login) === ((_b = i.author) === null || _b === void 0 ? void 0 : _b.login); }).find(ic => ic)) === null || _g === void 0 ? void 0 : _g.createdAt;
+                const lastCommentAt = lastComment !== undefined ? new Date(lastComment) : undefined;
                 staleIssues.push({
                     number: i.number,
                     owner: i.author.login,
@@ -1258,7 +1260,8 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
                     createdAt,
                     updatedAt,
                     hasStaleLabel,
-                    staleLabelAt: staleAt
+                    staleLabelAt: staleAt,
+                    lastCommentAt
                 });
             }
         });
@@ -1270,89 +1273,6 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
     });
 }
 exports.queryStaleIssues = queryStaleIssues;
-function queryStaleIssuesx(token, owner, repo, staleLabel, cursor = null, results = []) {
-    var _a, _b;
-    return __awaiter(this, void 0, void 0, function* () {
-        const issues = yield graphql_1.graphql({
-            query: `
-    query staleIssues($owner: String!, $repo: String!, $cursor: String) {
-      repository(owner:$owner, name:$repo) {
-        issues(last: 100, states:OPEN, after:$cursor) {
-          pageInfo {
-            endCursor
-            hasNextPage
-          }
-          nodes {
-            number
-            title
-            createdAt
-            updatedAt
-            author {
-              login
-            }
-            timelineItems(last: 10, itemTypes: [LABELED_EVENT,ISSUE_COMMENT]) {
-              totalCount
-              nodes {
-                ... on LabeledEvent {
-                  __typename
-                  createdAt
-                  label {
-                    name
-                  }
-                }
-                ... on IssueComment {
-                  __typename
-                  createdAt
-                  author {
-                    login
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    `,
-            cursor,
-            owner,
-            repo,
-            headers: {
-                authorization: `token ${token}`
-            }
-        }).then(res => res.repository.issues);
-        const staleIssues = [];
-        (_a = issues.nodes) === null || _a === void 0 ? void 0 : _a.forEach(i => {
-            var _a, _b, _c;
-            // if just to get past beyond ts null checks, we know stuff is there
-            // but some reason schema typings i.e. thinks number may be undefined
-            if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
-                const createdAt = new Date(i.createdAt);
-                const updatedAt = new Date(i.updatedAt);
-                // should we get label from labels or events
-                // const hasStaleLabel = i.labels?.nodes?.some(l => l?.name === staleLabel) || false;
-                const labeledCreatedAt = (_c = (_b = i.timelineItems.nodes) === null || _b === void 0 ? void 0 : _b.reverse().filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').filter(ti => ti.label.name === staleLabel).find(ti => ti)) === null || _c === void 0 ? void 0 : _c.createdAt;
-                const hasStaleLabel = labeledCreatedAt !== undefined;
-                const staleAt = labeledCreatedAt !== undefined ? new Date(labeledCreatedAt) : undefined;
-                staleIssues.push({
-                    number: i.number,
-                    owner: i.author.login,
-                    title: i.title,
-                    createdAt,
-                    updatedAt,
-                    hasStaleLabel,
-                    staleLabelAt: staleAt
-                });
-            }
-        });
-        results.push(...staleIssues);
-        if ((_b = issues.pageInfo) === null || _b === void 0 ? void 0 : _b.hasNextPage) {
-            yield queryStaleIssues(token, owner, repo, staleLabel, issues.pageInfo.endCursor, results);
-        }
-        return results;
-    });
-}
-exports.queryStaleIssuesx = queryStaleIssuesx;
 
 
 /***/ }),
@@ -37448,11 +37368,12 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
         core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
         const staleDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeStale, 'days');
         core.info(`staleDate ${staleDate}`);
-        const closeDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeClose, 'days').toDate();
+        const closeDate = moment_1.default(new Date())
+            .subtract(config.issueDaysBeforeClose, 'days')
+            .toDate();
         core.info(`closeDate ${closeDate}`);
         // going through issues
         for (const i of staleIssues) {
-            // const hasStaleLabel = i.hasStaleLabel;
             core.info(`#${i.number} updatedAt ${i.updatedAt}`);
             if (i.updatedAt) {
                 const diffInDays = moment_1.default(staleDate).diff(moment_1.default(i.updatedAt), 'days');
@@ -37466,24 +37387,38 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
 }
 function handleStaleIssue(token, expressionContext, staleIssue, config, closeDate, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.info(`Handling stale issue #${staleIssue.number} '${staleIssue.title}'`);
+        core.info(`Handling stale issue #${staleIssue.number}`);
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
         // if no stale label, add it
         if (!staleIssue.hasStaleLabel) {
-            core.info(`Found issue #${staleIssue.number} to become stale`);
+            core.info(`Issue #${staleIssue.number} to become stale`);
             if (!dryRun) {
                 yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
             }
         }
-        else {
-            core.info(`XXX1 ${staleIssue.staleLabelAt} ${closeDate}`);
-            // if stale label exists, check timeline when it was marked stale,
-            // then close if stale enough time
-            if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
-                core.info(`Found issue #${staleIssue.number} to close as stale`);
+        else if (staleIssue.staleLabelAt) {
+            if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+                // there's a user comment after stale label, un-stale
+                core.info(`Issue #${staleIssue.number} to become un-stale`);
                 if (!dryRun) {
-                    yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
+                    yield github_utils_1.removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+                }
+            }
+            else {
+                // if stale label exists, check timeline when it was marked stale,
+                // then close if stale enough time
+                if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
+                    core.info(`Issue #${staleIssue.number} to close as stale`);
+                    if (!dryRun) {
+                        yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
+                    }
+                    if (config.issueCloseLabel) {
+                        core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
+                        if (!dryRun) {
+                            yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
+                        }
+                    }
                 }
             }
         }
@@ -37496,7 +37431,8 @@ function resolveConfig(recipe) {
     return {
         issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
         issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),
-        issueStaleLabel: recipe.issueStaleLabel || 'stale'
+        issueStaleLabel: recipe.issueStaleLabel || 'stale',
+        issueCloseLabel: recipe.issueCloseLabel
     };
 }
 function numberValue(value, defaultValue) {

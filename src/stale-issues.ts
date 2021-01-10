@@ -93,13 +93,14 @@ async function handleStaleIssue(
 
   // if no stale label, add it
   if (!staleIssue.hasStaleLabel) {
-    core.info(`Found issue #${staleIssue.number} to become stale`);
+    core.info(`Issue #${staleIssue.number} to become stale`);
     if (!dryRun) {
       await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
     }
   } else if (staleIssue.staleLabelAt) {
     if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
       // there's a user comment after stale label, un-stale
+      core.info(`Issue #${staleIssue.number} to become un-stale`);
       if (!dryRun) {
         await removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
       }
@@ -107,10 +108,13 @@ async function handleStaleIssue(
       // if stale label exists, check timeline when it was marked stale,
       // then close if stale enough time
       if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
-        core.info(`Found issue #${staleIssue.number} to close as stale`);
+        core.info(`Issue #${staleIssue.number} to close as stale`);
         if (!dryRun) {
           await closeIssue(token, owner, repo, staleIssue.number);
-          if (config.issueCloseLabel) {
+        }
+        if (config.issueCloseLabel) {
+          core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
+          if (!dryRun) {
             await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
           }
         }
