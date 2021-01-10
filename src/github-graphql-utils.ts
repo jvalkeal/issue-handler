@@ -1,6 +1,8 @@
 import { graphql } from '@octokit/graphql';
 import { RequestParameters } from '@octokit/graphql/dist-types/types';
+import { print } from 'graphql';
 import { Repository, LabeledEvent, StaleIssues, StaleIssuesQueryVariables, StaleIssuesQuery } from './generated/graphql';
+// import { Repository, LabeledEvent, StaleIssuesQueryVariables, StaleIssuesQuery } from './generated/graphql';
 
 export interface StaleIssue {
   number: number;
@@ -28,14 +30,14 @@ export async function queryStaleIssues(
     cursor
   };
 
+
+
   const options: RequestParameters = {
-    query: StaleIssues,
+    query: print(StaleIssues),
     headers: {
       authorization: `token ${token}`
     },
-    owner,
-    repo,
-    cursor
+    ... variables
   };
 
   const issues = await graphql<StaleIssuesQuery>(options);
@@ -51,7 +53,7 @@ export async function queryStaleIssues(
 
       // should we get label from labels or events
 
-      const labeledCreatedAt = i.labeledEventsTimeline.nodes
+      const labeledCreatedAt = i.labeledEventsTimeline?.nodes
         ?.reverse()
         .filter((ti): ti is LabeledEvent => ti?.__typename === 'LabeledEvent')
         .filter(ti => ti.label.name === staleLabel)
@@ -81,7 +83,7 @@ export async function queryStaleIssues(
 }
 
 
-export async function queryStaleIssues2(
+export async function queryStaleIssuesx(
   token: string,
   owner: string,
   repo: string,
@@ -172,7 +174,7 @@ export async function queryStaleIssues2(
   results.push(...staleIssues);
 
   if (issues.pageInfo?.hasNextPage) {
-    await queryStaleIssues2(token, owner, repo, staleLabel, issues.pageInfo.endCursor, results);
+    await queryStaleIssues(token, owner, repo, staleLabel, issues.pageInfo.endCursor, results);
   }
 
   return results;
