@@ -33,14 +33,13 @@ export async function queryStaleIssues(
 
 
   const options: RequestParameters = {
-    query: print(StaleIssues),
     headers: {
       authorization: `token ${token}`
     },
     ... variables
   };
 
-  const issues = await graphql<StaleIssuesQuery>(options);
+  const issues = await graphql<StaleIssuesQuery>(print(StaleIssues), options);
 
   const staleIssues: StaleIssue[] = [];
 

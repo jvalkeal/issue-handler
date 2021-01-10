@@ -1235,10 +1235,10 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
             repo,
             cursor
         };
-        const options = Object.assign({ query: graphql_2.print(graphql_3.StaleIssues), headers: {
+        const options = Object.assign({ headers: {
                 authorization: `token ${token}`
             } }, variables);
-        const issues = yield graphql_1.graphql(options);
+        const issues = yield graphql_1.graphql(graphql_2.print(graphql_3.StaleIssues), options);
         const staleIssues = [];
         (_b = (_a = issues.repository) === null || _a === void 0 ? void 0 : _a.issues.nodes) === null || _b === void 0 ? void 0 : _b.forEach(i => {
             var _a, _b, _c, _d;
