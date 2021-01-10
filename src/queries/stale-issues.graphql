@@ -1,0 +1,43 @@
+query StaleIssues($owner: String!, $repo: String!, $cursor: String) {
+  repository(owner:$owner, name:$repo) {
+    issues(last: 100, states:OPEN, after:$cursor) {
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      nodes {
+        number
+        title
+        createdAt
+        updatedAt
+        author {
+          login
+        }
+        labeledEventsTimeline: timelineItems(last: 4, itemTypes: [LABELED_EVENT]) {
+          totalCount
+          nodes {
+            ... on LabeledEvent {
+              __typename
+              createdAt
+              label {
+                name
+              }
+            }
+          }
+				}
+        issueCommentsTimeline: timelineItems(last: 4, itemTypes: [ISSUE_COMMENT]) {
+          totalCount
+          nodes {
+            ... on IssueComment {
+              __typename
+              createdAt
+              author {
+                login
+              }
+            }
+          }
+				}
+      }
+    }
+  }
+}

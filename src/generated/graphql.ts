@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
@@ -28243,3 +28244,123 @@ export type Resolvers<ContextType = any> = {
  * Use "Resolvers" root object instead. If you wish to get "IResolvers", add "typesPrefix: I" to your config.
  */
 export type IResolvers<ContextType = any> = Resolvers<ContextType>;
+
+
+export const StaleIssues = gql`
+    query StaleIssues($owner: String!, $repo: String!, $cursor: String) {
+  repository(owner: $owner, name: $repo) {
+    issues(last: 100, states: OPEN, after: $cursor) {
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      nodes {
+        number
+        title
+        createdAt
+        updatedAt
+        author {
+          login
+        }
+        labeledEventsTimeline: timelineItems(last: 4, itemTypes: [LABELED_EVENT]) {
+          totalCount
+          nodes {
+            ... on LabeledEvent {
+              __typename
+              createdAt
+              label {
+                name
+              }
+            }
+          }
+        }
+        issueCommentsTimeline: timelineItems(last: 4, itemTypes: [ISSUE_COMMENT]) {
+          totalCount
+          nodes {
+            ... on IssueComment {
+              __typename
+              createdAt
+              author {
+                login
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type StaleIssuesQueryVariables = Exact<{
+  owner: Scalars['String'];
+  repo: Scalars['String'];
+  cursor?: Maybe<Scalars['String']>;
+}>;
+
+
+export type StaleIssuesQuery = (
+  { __typename?: 'Query' }
+  & { repository?: Maybe<(
+    { __typename?: 'Repository' }
+    & { issues: (
+      { __typename?: 'IssueConnection' }
+      & { pageInfo: (
+        { __typename?: 'PageInfo' }
+        & Pick<PageInfo, 'endCursor' | 'hasNextPage'>
+      ), nodes?: Maybe<Array<Maybe<(
+        { __typename?: 'Issue' }
+        & Pick<Issue, 'number' | 'title' | 'createdAt' | 'updatedAt'>
+        & { author?: Maybe<(
+          { __typename?: 'Bot' }
+          & Pick<Bot, 'login'>
+        ) | (
+          { __typename?: 'EnterpriseUserAccount' }
+          & Pick<EnterpriseUserAccount, 'login'>
+        ) | (
+          { __typename?: 'Mannequin' }
+          & Pick<Mannequin, 'login'>
+        ) | (
+          { __typename?: 'Organization' }
+          & Pick<Organization, 'login'>
+        ) | (
+          { __typename?: 'User' }
+          & Pick<User, 'login'>
+        )>, labeledEventsTimeline: (
+          { __typename?: 'IssueTimelineItemsConnection' }
+          & Pick<IssueTimelineItemsConnection, 'totalCount'>
+          & { nodes?: Maybe<Array<Maybe<{ __typename?: 'AddedToProjectEvent' } | { __typename?: 'AssignedEvent' } | { __typename?: 'ClosedEvent' } | { __typename?: 'CommentDeletedEvent' } | { __typename?: 'ConnectedEvent' } | { __typename?: 'ConvertedNoteToIssueEvent' } | { __typename?: 'CrossReferencedEvent' } | { __typename?: 'DemilestonedEvent' } | { __typename?: 'DisconnectedEvent' } | { __typename?: 'IssueComment' } | (
+            { __typename: 'LabeledEvent' }
+            & Pick<LabeledEvent, 'createdAt'>
+            & { label: (
+              { __typename?: 'Label' }
+              & Pick<Label, 'name'>
+            ) }
+          ) | { __typename?: 'LockedEvent' } | { __typename?: 'MarkedAsDuplicateEvent' } | { __typename?: 'MentionedEvent' } | { __typename?: 'MilestonedEvent' } | { __typename?: 'MovedColumnsInProjectEvent' } | { __typename?: 'PinnedEvent' } | { __typename?: 'ReferencedEvent' } | { __typename?: 'RemovedFromProjectEvent' } | { __typename?: 'RenamedTitleEvent' } | { __typename?: 'ReopenedEvent' } | { __typename?: 'SubscribedEvent' } | { __typename?: 'TransferredEvent' } | { __typename?: 'UnassignedEvent' } | { __typename?: 'UnlabeledEvent' } | { __typename?: 'UnlockedEvent' } | { __typename?: 'UnmarkedAsDuplicateEvent' } | { __typename?: 'UnpinnedEvent' } | { __typename?: 'UnsubscribedEvent' } | { __typename?: 'UserBlockedEvent' }>>> }
+        ), issueCommentsTimeline: (
+          { __typename?: 'IssueTimelineItemsConnection' }
+          & Pick<IssueTimelineItemsConnection, 'totalCount'>
+          & { nodes?: Maybe<Array<Maybe<{ __typename?: 'AddedToProjectEvent' } | { __typename?: 'AssignedEvent' } | { __typename?: 'ClosedEvent' } | { __typename?: 'CommentDeletedEvent' } | { __typename?: 'ConnectedEvent' } | { __typename?: 'ConvertedNoteToIssueEvent' } | { __typename?: 'CrossReferencedEvent' } | { __typename?: 'DemilestonedEvent' } | { __typename?: 'DisconnectedEvent' } | (
+            { __typename: 'IssueComment' }
+            & Pick<IssueComment, 'createdAt'>
+            & { author?: Maybe<(
+              { __typename?: 'Bot' }
+              & Pick<Bot, 'login'>
+            ) | (
+              { __typename?: 'EnterpriseUserAccount' }
+              & Pick<EnterpriseUserAccount, 'login'>
+            ) | (
+              { __typename?: 'Mannequin' }
+              & Pick<Mannequin, 'login'>
+            ) | (
+              { __typename?: 'Organization' }
+              & Pick<Organization, 'login'>
+            ) | (
+              { __typename?: 'User' }
+              & Pick<User, 'login'>
+            )> }
+          ) | { __typename?: 'LabeledEvent' } | { __typename?: 'LockedEvent' } | { __typename?: 'MarkedAsDuplicateEvent' } | { __typename?: 'MentionedEvent' } | { __typename?: 'MilestonedEvent' } | { __typename?: 'MovedColumnsInProjectEvent' } | { __typename?: 'PinnedEvent' } | { __typename?: 'ReferencedEvent' } | { __typename?: 'RemovedFromProjectEvent' } | { __typename?: 'RenamedTitleEvent' } | { __typename?: 'ReopenedEvent' } | { __typename?: 'SubscribedEvent' } | { __typename?: 'TransferredEvent' } | { __typename?: 'UnassignedEvent' } | { __typename?: 'UnlabeledEvent' } | { __typename?: 'UnlockedEvent' } | { __typename?: 'UnmarkedAsDuplicateEvent' } | { __typename?: 'UnpinnedEvent' } | { __typename?: 'UnsubscribedEvent' } | { __typename?: 'UserBlockedEvent' }>>> }
+        ) }
+      )>>> }
+    ) }
+  )> }
+);
