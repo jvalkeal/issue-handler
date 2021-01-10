@@ -70,7 +70,7 @@ async function processIssues(
     core.info(`#${i.number} updatedAt ${i.updatedAt}`);
     if (i.updatedAt) {
       const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
-      core.debug(`#${i.number} stale diff ${diffInDays} days`);
+      core.info(`#${i.number} stale diff ${diffInDays} days`);
       if (diffInDays > 0) {
         await handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
       }
@@ -86,8 +86,6 @@ async function handleStaleIssue(
   closeDate: Date,
   dryRun: boolean
 ) {
-  // const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
-  // const diffInDays = moment(closeDate).diff(moment(new Date()), 'days');
   core.info(`Handling stale issue #${staleIssue.number} '${staleIssue.title}'`);
   const owner = expressionContext.context.repo.owner;
   const repo = expressionContext.context.repo.repo;
@@ -99,11 +97,10 @@ async function handleStaleIssue(
       await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
     }
   } else {
-    core.info(`XXX1 ${staleIssue.staleAt} ${closeDate}`)
+    core.info(`XXX1 ${staleIssue.staleLabelAt} ${closeDate}`)
     // if stale label exists, check timeline when it was marked stale,
     // then close if stale enough time
-    // if (moment(staleIssue.staleAt) < closeDate) {
-    if (staleIssue.staleAt && staleIssue.staleAt < closeDate) {
+    if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
       core.info(`Found issue #${staleIssue.number} to close as stale`);
       if (!dryRun) {
         await closeIssue(token, owner, repo, staleIssue.number);
@@ -116,7 +113,6 @@ async function handleStaleIssue(
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
-  // const x = recipe.issueDaysBeforeStale === 0 ?
   return {
     issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
     issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),

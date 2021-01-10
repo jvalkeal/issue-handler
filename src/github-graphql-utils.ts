@@ -8,7 +8,8 @@ export interface StaleIssue {
   createdAt: Date;
   updatedAt: Date;
   hasStaleLabel: boolean;
-  staleAt: Date | undefined;
+  staleLabelAt: Date | undefined;
+  // lastCommentAt: Data | undefined;
 }
 
 export async function queryStaleIssues(
@@ -80,7 +81,9 @@ export async function queryStaleIssues(
       // const hasStaleLabel = i.labels?.nodes?.some(l => l?.name === staleLabel) || false;
 
       const labeledCreatedAt = i.timelineItems.nodes
-        ?.filter((ti): ti is LabeledEvent => ti?.__typename === 'LabeledEvent')
+        ?.reverse()
+        .filter((ti): ti is LabeledEvent => ti?.__typename === 'LabeledEvent')
+        .filter(ti => ti.label.name === staleLabel)
         .find(ti => ti)?.createdAt;
       const hasStaleLabel = labeledCreatedAt !== undefined;
       const staleAt = labeledCreatedAt !== undefined ? new Date(labeledCreatedAt) : undefined;
@@ -92,7 +95,7 @@ export async function queryStaleIssues(
         createdAt,
         updatedAt,
         hasStaleLabel,
-        staleAt
+        staleLabelAt: staleAt
       });
     }
   });

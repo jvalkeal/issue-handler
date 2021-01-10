@@ -509,7 +509,7 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
                 const updatedAt = new Date(i.updatedAt);
                 // should we get label from labels or events
                 // const hasStaleLabel = i.labels?.nodes?.some(l => l?.name === staleLabel) || false;
-                const labeledCreatedAt = (_c = (_b = i.timelineItems.nodes) === null || _b === void 0 ? void 0 : _b.filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').find(ti => ti)) === null || _c === void 0 ? void 0 : _c.createdAt;
+                const labeledCreatedAt = (_c = (_b = i.timelineItems.nodes) === null || _b === void 0 ? void 0 : _b.reverse().filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').filter(ti => ti.label.name === staleLabel).find(ti => ti)) === null || _c === void 0 ? void 0 : _c.createdAt;
                 const hasStaleLabel = labeledCreatedAt !== undefined;
                 const staleAt = labeledCreatedAt !== undefined ? new Date(labeledCreatedAt) : undefined;
                 staleIssues.push({
@@ -519,7 +519,7 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
                     createdAt,
                     updatedAt,
                     hasStaleLabel,
-                    staleAt
+                    staleLabelAt: staleAt
                 });
             }
         });
@@ -14878,7 +14878,7 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
             core.info(`#${i.number} updatedAt ${i.updatedAt}`);
             if (i.updatedAt) {
                 const diffInDays = moment_1.default(staleDate).diff(moment_1.default(i.updatedAt), 'days');
-                core.debug(`#${i.number} stale diff ${diffInDays} days`);
+                core.info(`#${i.number} stale diff ${diffInDays} days`);
                 if (diffInDays > 0) {
                     yield handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
                 }
@@ -14888,8 +14888,6 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
 }
 function handleStaleIssue(token, expressionContext, staleIssue, config, closeDate, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
-        // const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days');
-        // const diffInDays = moment(closeDate).diff(moment(new Date()), 'days');
         core.info(`Handling stale issue #${staleIssue.number} '${staleIssue.title}'`);
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
@@ -14901,11 +14899,10 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, closeDat
             }
         }
         else {
-            core.info(`XXX1 ${staleIssue.staleAt} ${closeDate}`);
+            core.info(`XXX1 ${staleIssue.staleLabelAt} ${closeDate}`);
             // if stale label exists, check timeline when it was marked stale,
             // then close if stale enough time
-            // if (moment(staleIssue.staleAt) < closeDate) {
-            if (staleIssue.staleAt && staleIssue.staleAt < closeDate) {
+            if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
                 core.info(`Found issue #${staleIssue.number} to close as stale`);
                 if (!dryRun) {
                     yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
@@ -14918,7 +14915,6 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, closeDat
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe) {
-    // const x = recipe.issueDaysBeforeStale === 0 ?
     return {
         issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
         issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),
