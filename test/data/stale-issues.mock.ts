@@ -19,8 +19,6 @@ export const GQ_1_STALE_NO_LABELS = {
             updatedAt: NOWMINUS3D,
             author: {
               login: 'user1'
-            },
-            timelineItems: {
             }
           }
         ]
@@ -49,14 +47,24 @@ export const GQ_1_STALE_HAVE_STALE_LABEL = {
                 }
               ]
             },
-            timelineItems: {
-              totalCount: 26,
+            labeledEventsTimeline: {
               nodes: [
                 {
                   __typename: 'LabeledEvent',
                   createdAt: NOWMINUS3D,
                   label: {
                     name: 'stale'
+                  }
+                }
+              ]
+            },
+            issueCommentsTimeline: {
+              nodes: [
+                {
+                  __typename: 'IssueComment',
+                  createdAt: NOWMINUS3D,
+                  author: {
+                    login: 'user1'
                   }
                 }
               ]
@@ -80,25 +88,6 @@ export const GQ_1_ISSUE = {
             updatedAt: NOWMINUS3D,
             author: {
               login: 'user1'
-            },
-            timelineItems: {
-              totalCount: 26,
-              nodes: [
-                {
-                  __typename: 'LabeledEvent',
-                  createdAt: NOWMINUS2D,
-                  label: {
-                    name: 'branch/2.2.x'
-                  }
-                },
-                {
-                  __typename: 'LabeledEvent',
-                  createdAt: NOWMINUS2D,
-                  label: {
-                    name: 'branch/2.2.x'
-                  }
-                }
-              ]
             }
           }
         ]
@@ -119,8 +108,6 @@ export const GQ_2_ISSUES = {
             updatedAt: NOWMINUS2D,
             author: {
               login: 'user1'
-            },
-            timelineItems: {
             }
           },
           {
@@ -130,8 +117,6 @@ export const GQ_2_ISSUES = {
             updatedAt: NOWMINUS5D,
             author: {
               login: 'user2'
-            },
-            timelineItems: {
             }
           }
         ]
@@ -156,8 +141,6 @@ export const GQ_PAGE1 = {
             updatedAt: NOWMINUS3D,
             author: {
               login: 'user1'
-            },
-            timelineItems: {
             }
           }
         ]
@@ -183,13 +166,24 @@ export const GQ_PAGE2 = {
             author: {
               login: 'user2'
             },
-            timelineItems: {
+            labeledEventsTimeline: {
               nodes: [
                 {
                   __typename: 'LabeledEvent',
                   createdAt: NOWMINUS3D,
                   label: {
                     name: 'status/stale'
+                  }
+                }
+              ]
+            },
+            issueCommentsTimeline: {
+              nodes: [
+                {
+                  __typename: 'IssueComment',
+                  createdAt: NOWMINUS3D,
+                  author: {
+                    login: 'user2'
                   }
                 }
               ]

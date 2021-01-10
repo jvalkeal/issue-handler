@@ -1,7 +1,7 @@
 import nock from 'nock';
 import lodash from 'lodash';
 import { queryStaleIssues } from '../src/github-graphql-utils';
-import { GQ_1_STALE_HAVE_STALE_LABEL, GQ_PAGE1, GQ_PAGE2 } from './data/stale-issues.mock';
+import { GQ_PAGE1, GQ_PAGE2 } from './data/stale-issues.mock';
 
 describe('github-graphql-utils tests', () => {
   it('queryStaleIssues paging from page1 to page2', async () => {
@@ -31,7 +31,7 @@ describe('github-graphql-utils tests', () => {
     expect(res[0].title).toBe('title1');
     expect(res[0].owner).toBe('user1');
     expect(res[0].hasStaleLabel).toBeFalsy();
-    expect(res[0].staleLabelAt).toBeUndefined()
+    expect(res[0].staleLabelAt).toBeUndefined();
     expect(res[1].number).toBe(2);
     expect(res[1].title).toBe('title2');
     expect(res[1].owner).toBe('user2');
@@ -58,5 +58,6 @@ describe('github-graphql-utils tests', () => {
     expect(res[0].owner).toBe('user2');
     expect(res[0].hasStaleLabel).toBeTruthy();
     expect(res[0].staleLabelAt).not.toBeUndefined();
+    expect(res[0].lastCommentAt).not.toBeUndefined();
   });
 });

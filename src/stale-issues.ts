@@ -4,7 +4,7 @@ import { inspect } from 'util';
 import moment from 'moment';
 import { queryStaleIssues, StaleIssue } from './github-graphql-utils';
 import { ExpressionContext } from './interfaces';
-import { addLabelsToIssue, closeIssue } from './github-utils';
+import { addLabelsToIssue, closeIssue, removeLabelFromIssue } from './github-utils';
 
 export interface StaleIssues {
   issueHandleSince?: string;
@@ -22,6 +22,7 @@ export interface StaleIssuesConfig {
   issueDaysBeforeStale: number;
   issueDaysBeforeClose: number;
   issueStaleLabel: string;
+  issueCloseLabel: string | undefined;
 }
 
 /**
@@ -60,13 +61,13 @@ async function processIssues(
   core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
   const staleDate = moment(new Date()).subtract(config.issueDaysBeforeStale, 'days');
   core.info(`staleDate ${staleDate}`);
-  const closeDate = moment(new Date()).subtract(config.issueDaysBeforeClose, 'days').toDate();
+  const closeDate = moment(new Date())
+    .subtract(config.issueDaysBeforeClose, 'days')
+    .toDate();
   core.info(`closeDate ${closeDate}`);
 
   // going through issues
   for (const i of staleIssues) {
-    // const hasStaleLabel = i.hasStaleLabel;
-
     core.info(`#${i.number} updatedAt ${i.updatedAt}`);
     if (i.updatedAt) {
       const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
@@ -86,7 +87,7 @@ async function handleStaleIssue(
   closeDate: Date,
   dryRun: boolean
 ) {
-  core.info(`Handling stale issue #${staleIssue.number} '${staleIssue.title}'`);
+  core.info(`Handling stale issue #${staleIssue.number}`);
   const owner = expressionContext.context.repo.owner;
   const repo = expressionContext.context.repo.repo;
 
@@ -96,14 +97,23 @@ async function handleStaleIssue(
     if (!dryRun) {
       await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
     }
-  } else {
-    core.info(`XXX1 ${staleIssue.staleLabelAt} ${closeDate}`)
-    // if stale label exists, check timeline when it was marked stale,
-    // then close if stale enough time
-    if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
-      core.info(`Found issue #${staleIssue.number} to close as stale`);
+  } else if (staleIssue.staleLabelAt) {
+    if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+      // there's a user comment after stale label, un-stale
       if (!dryRun) {
-        await closeIssue(token, owner, repo, staleIssue.number);
+        await removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+      }
+    } else {
+      // if stale label exists, check timeline when it was marked stale,
+      // then close if stale enough time
+      if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
+        core.info(`Found issue #${staleIssue.number} to close as stale`);
+        if (!dryRun) {
+          await closeIssue(token, owner, repo, staleIssue.number);
+          if (config.issueCloseLabel) {
+            await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
+          }
+        }
       }
     }
   }
@@ -116,7 +126,8 @@ function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
   return {
     issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
     issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),
-    issueStaleLabel: recipe.issueStaleLabel || 'stale'
+    issueStaleLabel: recipe.issueStaleLabel || 'stale',
+    issueCloseLabel: recipe.issueCloseLabel
   };
 }
 
