@@ -33,7 +33,9 @@ export async function queryStaleIssues(
     headers: {
       authorization: `token ${token}`
     },
-    ... variables
+    owner,
+    repo,
+    cursor
   };
 
   const issues = await graphql<StaleIssuesQuery>(options);
