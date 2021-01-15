@@ -69,13 +69,14 @@ async function processIssues(
   // going through issues
   for (const i of staleIssues) {
     core.info(`#${i.number} updatedAt ${i.updatedAt}`);
-    if (i.updatedAt) {
-      const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
-      core.info(`#${i.number} stale diff ${diffInDays} days`);
-      if (diffInDays > 0) {
-        await handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
-      }
-    }
+    // if (i.updatedAt) {
+    //   const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
+    //   core.info(`#${i.number} stale diff ${diffInDays} days`);
+    //   if (diffInDays > 0) {
+    //     await handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
+    //   }
+    // }
+    await handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
   }
 }
 

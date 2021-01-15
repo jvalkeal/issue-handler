@@ -15,6 +15,7 @@ export interface StaleIssue {
   title: string;
   createdAt: Date;
   updatedAt: Date;
+  labels: string[];
   hasStaleLabel: boolean;
   staleLabelAt: Date | undefined;
   lastCommentAt: Date | undefined;
@@ -50,6 +51,7 @@ export async function queryStaleIssues(
       const updatedAt = new Date(i.updatedAt);
 
       // should we get label from labels or events
+      const labels = i.labels?.nodes?.filter(notEmpty).map(l => l?.name) || [];
 
       const labeledCreatedAt = i.labeledEventsTimeline?.nodes
         ?.reverse()
@@ -72,6 +74,7 @@ export async function queryStaleIssues(
         title: i.title,
         createdAt,
         updatedAt,
+        labels,
         hasStaleLabel,
         staleLabelAt: staleAt,
         lastCommentAt
@@ -86,4 +89,8 @@ export async function queryStaleIssues(
   }
 
   return results;
+}
+
+function notEmpty<V>(value: V | null | undefined): value is V {
+  return value !== null && value !== undefined;
 }

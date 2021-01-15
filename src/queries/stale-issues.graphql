@@ -13,6 +13,12 @@ query StaleIssues($owner: String!, $repo: String!, $cursor: String) {
         author {
           login
         }
+        labels(first: 100) {
+          totalCount
+          nodes {
+            name
+          }
+        }
         labeledEventsTimeline: timelineItems(last: 4, itemTypes: [LABELED_EVENT]) {
           totalCount
           nodes {

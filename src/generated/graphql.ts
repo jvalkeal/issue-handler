@@ -28262,6 +28262,12 @@ export const StaleIssues = gql`
         author {
           login
         }
+        labels(first: 100) {
+          totalCount
+          nodes {
+            name
+          }
+        }
         labeledEventsTimeline: timelineItems(last: 4, itemTypes: [LABELED_EVENT]) {
           totalCount
           nodes {
@@ -28325,6 +28331,13 @@ export type StaleIssuesQuery = (
         ) | (
           { __typename?: 'User' }
           & Pick<User, 'login'>
+        )>, labels?: Maybe<(
+          { __typename?: 'LabelConnection' }
+          & Pick<LabelConnection, 'totalCount'>
+          & { nodes?: Maybe<Array<Maybe<(
+            { __typename?: 'Label' }
+            & Pick<Label, 'name'>
+          )>>> }
         )>, labeledEventsTimeline: (
           { __typename?: 'IssueTimelineItemsConnection' }
           & Pick<IssueTimelineItemsConnection, 'totalCount'>
