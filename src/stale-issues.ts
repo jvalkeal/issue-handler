@@ -8,7 +8,7 @@ import { addLabelsToIssue, closeIssue, removeLabelFromIssue, addCommentToIssue }
 import { numberValue } from './utils';
 
 export interface StaleIssues {
-  // issueHandleSince?: string;
+  issueSince?: number | string;
   issueBeforeStale?: number | string;
   issueBeforeClose?: number | string;
   issueStaleMessage?: string;
@@ -20,6 +20,7 @@ export interface StaleIssues {
 }
 
 export interface StaleIssuesConfig {
+  issueSince: Date | undefined;
   issueBeforeStale: Date;
   issueBeforeClose: Date;
   issueStaleLabel: string;
@@ -58,7 +59,8 @@ export async function handleStaleIssues(
 
   core.info(`Doing queryStaleIssues`);
   // for now just blindly query all open issues
-  const staleIssues = await queryStaleIssues(token, owner, repo, config.issueStaleLabel);
+  const issueSince = config.issueSince ? moment(config.issueSince).toISOString() : undefined;
+  const staleIssues = await queryStaleIssues(token, owner, repo, config.issueStaleLabel, issueSince);
   core.info(`Result queryStaleIssues ${inspect(staleIssues, true, 10)}`);
 
   await processIssues(token, expressionContext, staleIssues, config, dryRun);
@@ -181,6 +183,23 @@ async function handleCloseIssue(
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
+  let issueSince: Date | undefined = undefined;
+  if (typeof recipe.issueSince === 'string' && recipe.issueSince.length > 0) {
+    if (recipe.issueSince.charAt(0) === 'P') {
+      issueSince = moment()
+        .subtract(recipe.issueSince)
+        .toDate();
+    } else {
+      issueSince = moment(recipe.issueSince).toDate();
+    }
+  } else if (typeof recipe.issueSince === 'number') {
+    if (recipe.issueSince > 0) {
+      issueSince = moment()
+        .subtract(recipe.issueSince, 'days')
+        .toDate();
+    }
+  }
+
   let issueBeforeStale: Date;
   if (typeof recipe.issueBeforeStale === 'string') {
     issueBeforeStale = moment()
@@ -212,6 +231,7 @@ function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
   }
 
   return {
+    issueSince,
     issueBeforeStale,
     issueBeforeClose,
     issueStaleLabel: recipe.issueStaleLabel || 'stale',

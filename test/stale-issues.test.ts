@@ -1,12 +1,14 @@
 import { Jexl } from 'jexl';
 import nock from 'nock';
+import lodash from 'lodash';
 import { handleStaleIssues, StaleIssues } from '../src/stale-issues';
 import { ExpressionContext } from '../src/interfaces';
 import { CONTEXT_WORKFLOW_DISPATCH_1 } from './mock-data';
 import {
   GQ_1_STALE_HAVE_STALE_LABEL_OLD_COMMENT,
   GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT,
-  GQ_1_STALE_NO_LABELS
+  GQ_1_STALE_NO_LABELS,
+  GQ_1_EMPTY
 } from './data/stale-issues.mock';
 import * as githubUtils from '../src/github-utils';
 
@@ -19,6 +21,41 @@ describe('stale-issues tests', () => {
     actor: 'actor',
     data: {}
   };
+
+  it('stale issue with since', async () => {
+    const addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+
+    nock('https://api.github.com')
+      .post('/graphql', body => {
+        const ret = lodash.isMatchWith(
+          body,
+          {
+            variables: {
+              since: ''
+            }
+          },
+          objValue => {
+            return objValue.since ? true : false;
+          }
+        );
+        return ret;
+      })
+      .reply(200, GQ_1_EMPTY);
+
+    const action: StaleIssues = {
+      issueSince: 1,
+      issueBeforeStale: 2
+    };
+    const jexl = new Jexl();
+    await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
+    expect(addLabelsToIssueSpy).not.toHaveBeenCalled();
+    expect(addCommentToIssueSpy).not.toHaveBeenCalled();
+  });
 
   it('stale issue - default label', async () => {
     const spy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {

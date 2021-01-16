@@ -37424,7 +37424,8 @@ function handleStaleIssues(recipe, jexl, expressionContext, token, dryRun = fals
         core.info(`Used config ${util_1.inspect(config)}`);
         core.info(`Doing queryStaleIssues`);
         // for now just blindly query all open issues
-        const staleIssues = yield github_graphql_utils_1.queryStaleIssues(token, owner, repo, config.issueStaleLabel);
+        const issueSince = config.issueSince ? moment_1.default(config.issueSince).toISOString() : undefined;
+        const staleIssues = yield github_graphql_utils_1.queryStaleIssues(token, owner, repo, config.issueStaleLabel, issueSince);
         core.info(`Result queryStaleIssues ${util_1.inspect(staleIssues, true, 10)}`);
         yield processIssues(token, expressionContext, staleIssues, config, dryRun);
     });
@@ -37526,6 +37527,24 @@ function handleCloseIssue(token, expressionContext, staleIssue, config, dryRun) 
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe) {
+    let issueSince = undefined;
+    if (typeof recipe.issueSince === 'string' && recipe.issueSince.length > 0) {
+        if (recipe.issueSince.charAt(0) === 'P') {
+            issueSince = moment_1.default()
+                .subtract(recipe.issueSince)
+                .toDate();
+        }
+        else {
+            issueSince = moment_1.default(recipe.issueSince).toDate();
+        }
+    }
+    else if (typeof recipe.issueSince === 'number') {
+        if (recipe.issueSince > 0) {
+            issueSince = moment_1.default()
+                .subtract(recipe.issueSince, 'days')
+                .toDate();
+        }
+    }
     let issueBeforeStale;
     if (typeof recipe.issueBeforeStale === 'string') {
         issueBeforeStale = moment_1.default()
@@ -37559,6 +37578,7 @@ function resolveConfig(recipe) {
             .toDate();
     }
     return {
+        issueSince,
         issueBeforeStale,
         issueBeforeClose,
         issueStaleLabel: recipe.issueStaleLabel || 'stale',

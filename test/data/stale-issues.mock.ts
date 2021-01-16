@@ -8,6 +8,16 @@ const NOWMINUS4D = moment().subtract(4, 'days').toISOString();
 const NOWMINUS5D = moment().subtract(5, 'days').toISOString();
 const NOWMINUS6D = moment().subtract(6, 'days').toISOString();
 
+export const GQ_1_EMPTY = {
+  data: {
+    repository: {
+      issues: {
+        nodes: []
+      }
+    }
+  }
+};
+
 export const GQ_1_STALE_NO_LABELS = {
   data: {
     repository: {
