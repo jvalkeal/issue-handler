@@ -5,11 +5,12 @@ import moment from 'moment';
 import { queryStaleIssues, StaleIssue } from './github-graphql-utils';
 import { ExpressionContext } from './interfaces';
 import { addLabelsToIssue, closeIssue, removeLabelFromIssue } from './github-utils';
+import { numberValue } from './utils';
 
 export interface StaleIssues {
   issueHandleSince?: string;
-  issueDaysBeforeStale?: number;
-  issueDaysBeforeClose?: number;
+  issueBeforeStale?: number | string;
+  issueBeforeClose?: number | string;
   issueStaleMessage?: string;
   issueCloseMessage?: string;
   issueStaleLabel?: string;
@@ -19,8 +20,8 @@ export interface StaleIssues {
 }
 
 export interface StaleIssuesConfig {
-  issueDaysBeforeStale: number;
-  issueDaysBeforeClose: number;
+  issueBeforeStale: Date;
+  issueBeforeClose: Date;
   issueStaleLabel: string;
   issueCloseLabel: string | undefined;
 }
@@ -84,14 +85,11 @@ async function processIssues(
   dryRun: boolean
 ) {
   // when issues become stale
-  core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
-  const staleDate = moment(new Date())
-    .subtract(config.issueDaysBeforeStale, 'days')
-    .toDate();
+  core.info(`issueBeforeStale ${config.issueBeforeStale}`);
+  const staleDate = config.issueBeforeStale;
   core.info(`staleDate ${staleDate}`);
-  const closeDate = moment(new Date())
-    .subtract(config.issueDaysBeforeClose, 'days')
-    .toDate();
+  core.info(`issueBeforeClose ${config.issueBeforeClose}`);
+  const closeDate = config.issueBeforeClose;
   core.info(`closeDate ${closeDate}`);
 
   // going through issues
@@ -170,20 +168,40 @@ async function handleCloseIssue(
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
+  let issueBeforeStale: Date;
+  if (typeof recipe.issueBeforeStale === 'string') {
+    issueBeforeStale = moment()
+      .subtract(recipe.issueBeforeStale)
+      .toDate();
+  } else if (typeof recipe.issueBeforeStale === 'number') {
+    issueBeforeStale = moment()
+      .subtract(numberValue(recipe.issueBeforeStale, 60), 'days')
+      .toDate();
+  } else {
+    issueBeforeStale = moment()
+      .subtract(60, 'days')
+      .toDate();
+  }
+
+  let issueBeforeClose: Date;
+  if (typeof recipe.issueBeforeClose === 'string') {
+    issueBeforeClose = moment()
+      .subtract(recipe.issueBeforeClose)
+      .toDate();
+  } else if (typeof recipe.issueBeforeClose === 'number') {
+    issueBeforeClose = moment()
+      .subtract(numberValue(recipe.issueBeforeClose, 7), 'days')
+      .toDate();
+  } else {
+    issueBeforeClose = moment()
+      .subtract(7, 'days')
+      .toDate();
+  }
+
   return {
-    issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
-    issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),
+    issueBeforeStale,
+    issueBeforeClose,
     issueStaleLabel: recipe.issueStaleLabel || 'stale',
     issueCloseLabel: recipe.issueCloseLabel
   };
-}
-
-/**
- * Returns value or default and handles if value is "falsy".
- */
-function numberValue(value: number | undefined, defaultValue: number): number {
-  if (value === 0) {
-    return value;
-  }
-  return value || defaultValue;
 }

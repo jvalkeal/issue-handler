@@ -4875,7 +4875,26 @@ function UniqueEnumValueNamesRule(context) {
 /***/ }),
 /* 161 */,
 /* 162 */,
-/* 163 */,
+/* 163 */
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.numberValue = void 0;
+/**
+ * Returns value or default and handles if value is "falsy".
+ */
+function numberValue(value, defaultValue) {
+    if (value === 0) {
+        return value;
+    }
+    return value || defaultValue;
+}
+exports.numberValue = numberValue;
+
+
+/***/ }),
 /* 164 */,
 /* 165 */,
 /* 166 */
@@ -37367,6 +37386,7 @@ const util_1 = __webpack_require__(669);
 const moment_1 = __importDefault(__webpack_require__(482));
 const github_graphql_utils_1 = __webpack_require__(63);
 const github_utils_1 = __webpack_require__(888);
+const utils_1 = __webpack_require__(163);
 var IssueState;
 (function (IssueState) {
     // issue is good
@@ -37414,14 +37434,11 @@ function getState(staleIssue, staleDate, closeDate) {
 function processIssues(token, expressionContext, staleIssues, config, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
         // when issues become stale
-        core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
-        const staleDate = moment_1.default(new Date())
-            .subtract(config.issueDaysBeforeStale, 'days')
-            .toDate();
+        core.info(`issueBeforeStale ${config.issueBeforeStale}`);
+        const staleDate = config.issueBeforeStale;
         core.info(`staleDate ${staleDate}`);
-        const closeDate = moment_1.default(new Date())
-            .subtract(config.issueDaysBeforeClose, 'days')
-            .toDate();
+        core.info(`issueBeforeClose ${config.issueBeforeClose}`);
+        const closeDate = config.issueBeforeClose;
         core.info(`closeDate ${closeDate}`);
         // going through issues
         for (const i of staleIssues) {
@@ -37484,21 +37501,44 @@ function handleCloseIssue(token, expressionContext, staleIssue, config, dryRun) 
  * Resolves an actual config with defaults, etc.
  */
 function resolveConfig(recipe) {
+    let issueBeforeStale;
+    if (typeof recipe.issueBeforeStale === 'string') {
+        issueBeforeStale = moment_1.default()
+            .subtract(recipe.issueBeforeStale)
+            .toDate();
+    }
+    else if (typeof recipe.issueBeforeStale === 'number') {
+        issueBeforeStale = moment_1.default()
+            .subtract(utils_1.numberValue(recipe.issueBeforeStale, 60), 'days')
+            .toDate();
+    }
+    else {
+        issueBeforeStale = moment_1.default()
+            .subtract(60, 'days')
+            .toDate();
+    }
+    let issueBeforeClose;
+    if (typeof recipe.issueBeforeClose === 'string') {
+        issueBeforeClose = moment_1.default()
+            .subtract(recipe.issueBeforeClose)
+            .toDate();
+    }
+    else if (typeof recipe.issueBeforeClose === 'number') {
+        issueBeforeClose = moment_1.default()
+            .subtract(utils_1.numberValue(recipe.issueBeforeClose, 7), 'days')
+            .toDate();
+    }
+    else {
+        issueBeforeClose = moment_1.default()
+            .subtract(7, 'days')
+            .toDate();
+    }
     return {
-        issueDaysBeforeStale: numberValue(recipe.issueDaysBeforeStale, 60),
-        issueDaysBeforeClose: numberValue(recipe.issueDaysBeforeClose, 7),
+        issueBeforeStale,
+        issueBeforeClose,
         issueStaleLabel: recipe.issueStaleLabel || 'stale',
         issueCloseLabel: recipe.issueCloseLabel
     };
-}
-/**
- * Returns value or default and handles if value is "falsy".
- */
-function numberValue(value, defaultValue) {
-    if (value === 0) {
-        return value;
-    }
-    return value || defaultValue;
 }
 
 

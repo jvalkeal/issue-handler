@@ -30,7 +30,7 @@ describe('stale-issues tests', () => {
       .reply(200, GQ_1_STALE_NO_LABELS);
 
     const action: StaleIssues = {
-      issueDaysBeforeStale: 2
+      issueBeforeStale: 2
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
@@ -50,7 +50,7 @@ describe('stale-issues tests', () => {
       .reply(200, GQ_1_STALE_NO_LABELS);
 
     const action: StaleIssues = {
-      issueDaysBeforeStale: 2,
+      issueBeforeStale: 2,
       issueStaleLabel: 'status/stale'
     };
     const jexl = new Jexl();
@@ -75,8 +75,8 @@ describe('stale-issues tests', () => {
       .reply(200, GQ_1_STALE_HAVE_STALE_LABEL_OLD_COMMENT);
 
     const action: StaleIssues = {
-      issueDaysBeforeStale: 2,
-      issueDaysBeforeClose: 1,
+      issueBeforeStale: 2,
+      issueBeforeClose: 1,
       issueCloseLabel: 'closed'
     };
     const jexl = new Jexl();
@@ -102,8 +102,8 @@ describe('stale-issues tests', () => {
       .reply(200, GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT);
 
     const action: StaleIssues = {
-      issueDaysBeforeStale: 2,
-      issueDaysBeforeClose: 1,
+      issueBeforeStale: 2,
+      issueBeforeClose: 1,
       issueCloseLabel: 'closed'
     };
     const jexl = new Jexl();
