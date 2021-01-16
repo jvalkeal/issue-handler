@@ -4,7 +4,7 @@ import { inspect } from 'util';
 import moment from 'moment';
 import { queryStaleIssues, StaleIssue } from './github-graphql-utils';
 import { ExpressionContext } from './interfaces';
-import { addLabelsToIssue, closeIssue, removeLabelFromIssue } from './github-utils';
+import { addLabelsToIssue, closeIssue, removeLabelFromIssue, addCommentToIssue } from './github-utils';
 import { numberValue } from './utils';
 
 export interface StaleIssues {
@@ -24,6 +24,8 @@ export interface StaleIssuesConfig {
   issueBeforeClose: Date;
   issueStaleLabel: string;
   issueCloseLabel: string | undefined;
+  issueStaleMessage: string | undefined;
+  issueCloseMessage: string | undefined;
 }
 
 enum IssueState {
@@ -64,16 +66,12 @@ export async function handleStaleIssues(
 
 function getState(staleIssue: StaleIssue, staleDate: Date, closeDate: Date): IssueState {
   if (staleIssue.hasStaleLabel) {
-    // if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
-    //   return IssueState.Unstale;
-    // }
     if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > closeDate) {
       return IssueState.Unstale;
     }
     return IssueState.Close;
   } else {
-    const diffInDays = moment(staleDate).diff(moment(staleIssue.updatedAt), 'days');
-    if (diffInDays > 0) {
+    if (staleIssue.updatedAt < staleDate) {
       return IssueState.Stale;
     }
   }
@@ -128,6 +126,12 @@ async function handleStaleIssue(
   if (!dryRun) {
     await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
   }
+  if (config.issueStaleMessage) {
+    core.info(`Issue #${staleIssue.number} add comment`);
+    if (!dryRun) {
+      await addCommentToIssue(token, owner, repo, staleIssue.number, config.issueStaleMessage);
+    }
+  }
 }
 
 async function handleUnstaleIssue(
@@ -163,6 +167,12 @@ async function handleCloseIssue(
     core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
     if (!dryRun) {
       await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
+    }
+  }
+  if (config.issueCloseMessage) {
+    core.info(`Issue #${staleIssue.number} add comment`);
+    if (!dryRun) {
+      await addCommentToIssue(token, owner, repo, staleIssue.number, config.issueCloseMessage);
     }
   }
 }
@@ -205,6 +215,8 @@ function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
     issueBeforeStale,
     issueBeforeClose,
     issueStaleLabel: recipe.issueStaleLabel || 'stale',
-    issueCloseLabel: recipe.issueCloseLabel
+    issueCloseLabel: recipe.issueCloseLabel,
+    issueStaleMessage: recipe.issueStaleMessage,
+    issueCloseMessage: recipe.issueCloseMessage
   };
 }

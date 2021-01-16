@@ -24,6 +24,9 @@ describe('stale-issues tests', () => {
     const spy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
       return Promise.resolve();
     });
+    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
 
     nock('https://api.github.com')
       .post('/graphql')
@@ -35,6 +38,7 @@ describe('stale-issues tests', () => {
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
     expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
+    expect(addCommentToIssueSpy).not.toHaveBeenCalled();
   });
 
   it('stale issue - change default label', async () => {
@@ -44,6 +48,9 @@ describe('stale-issues tests', () => {
     const spy2 = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
       return Promise.resolve();
     });
+    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
 
     nock('https://api.github.com')
       .post('/graphql')
@@ -51,12 +58,14 @@ describe('stale-issues tests', () => {
 
     const action: StaleIssues = {
       issueBeforeStale: 2,
-      issueStaleLabel: 'status/stale'
+      issueStaleLabel: 'status/stale',
+      issueStaleMessage: 'marking stale'
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
     expect(spy1).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['status/stale']);
     expect(spy2).not.toHaveBeenCalled();
+    expect(addCommentToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, 'marking stale');
   });
 
   it('closes stale issue', async () => {
@@ -69,6 +78,9 @@ describe('stale-issues tests', () => {
     const spy3 = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
       return Promise.resolve();
     });
+    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
 
     nock('https://api.github.com')
       .post('/graphql')
@@ -77,13 +89,15 @@ describe('stale-issues tests', () => {
     const action: StaleIssues = {
       issueBeforeStale: 2,
       issueBeforeClose: 1,
-      issueCloseLabel: 'closed'
+      issueCloseLabel: 'closed',
+      issueCloseMessage: 'marking closed'
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
     expect(spy2).toHaveBeenCalledWith('token', 'owner', 'repo', 1);
     expect(spy3).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
     expect(spy1).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['closed']);
+    expect(addCommentToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, 'marking closed');
   });
 
   it('unstale stale issue when updated', async () => {

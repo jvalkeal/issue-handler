@@ -37079,7 +37079,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getIssueLabels = exports.getRepoLabels = exports.removeLabelFromIssue = exports.addLabelsToIssue = exports.findIssuesWithLabels = exports.findIssues = exports.closeIssue = exports.createIssue = void 0;
+exports.getIssueLabels = exports.getRepoLabels = exports.removeLabelFromIssue = exports.addLabelsToIssue = exports.addCommentToIssue = exports.findIssuesWithLabels = exports.findIssues = exports.closeIssue = exports.createIssue = void 0;
 const core = __importStar(__webpack_require__(470));
 const github = __importStar(__webpack_require__(469));
 const util_1 = __webpack_require__(669);
@@ -37150,6 +37150,19 @@ function findIssuesWithLabels(token, owner, repo, title, labels) {
     });
 }
 exports.findIssuesWithLabels = findIssuesWithLabels;
+function addCommentToIssue(token, owner, repo, issue_number, body) {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.info(`Adding comment to issue ${issue_number}`);
+        const octokit = github.getOctokit(token);
+        octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number,
+            body
+        });
+    });
+}
+exports.addCommentToIssue = addCommentToIssue;
 function addLabelsToIssue(token, owner, repo, issue_number, labels) {
     return __awaiter(this, void 0, void 0, function* () {
         core.info(`Adding labels '${labels}' to issue ${issue_number}`);
@@ -37418,17 +37431,13 @@ function handleStaleIssues(recipe, jexl, expressionContext, token, dryRun = fals
 exports.handleStaleIssues = handleStaleIssues;
 function getState(staleIssue, staleDate, closeDate) {
     if (staleIssue.hasStaleLabel) {
-        // if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
-        //   return IssueState.Unstale;
-        // }
         if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > closeDate) {
             return IssueState.Unstale;
         }
         return IssueState.Close;
     }
     else {
-        const diffInDays = moment_1.default(staleDate).diff(moment_1.default(staleIssue.updatedAt), 'days');
-        if (diffInDays > 0) {
+        if (staleIssue.updatedAt < staleDate) {
             return IssueState.Stale;
         }
     }
@@ -37471,6 +37480,12 @@ function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) 
         if (!dryRun) {
             yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
         }
+        if (config.issueStaleMessage) {
+            core.info(`Issue #${staleIssue.number} add comment`);
+            if (!dryRun) {
+                yield github_utils_1.addCommentToIssue(token, owner, repo, staleIssue.number, config.issueStaleMessage);
+            }
+        }
     });
 }
 function handleUnstaleIssue(token, expressionContext, staleIssue, config, dryRun) {
@@ -37496,6 +37511,12 @@ function handleCloseIssue(token, expressionContext, staleIssue, config, dryRun) 
             core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
             if (!dryRun) {
                 yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
+            }
+        }
+        if (config.issueCloseMessage) {
+            core.info(`Issue #${staleIssue.number} add comment`);
+            if (!dryRun) {
+                yield github_utils_1.addCommentToIssue(token, owner, repo, staleIssue.number, config.issueCloseMessage);
             }
         }
     });
@@ -37540,7 +37561,9 @@ function resolveConfig(recipe) {
         issueBeforeStale,
         issueBeforeClose,
         issueStaleLabel: recipe.issueStaleLabel || 'stale',
-        issueCloseLabel: recipe.issueCloseLabel
+        issueCloseLabel: recipe.issueCloseLabel,
+        issueStaleMessage: recipe.issueStaleMessage,
+        issueCloseMessage: recipe.issueCloseMessage
     };
 }
 
