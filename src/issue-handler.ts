@@ -8,7 +8,9 @@ async function run() {
     const issueHandlerConfig = inputRequired('config');
     const issueHandlerDryRun = Boolean(inputNotRequired('dry-run'));
     core.startGroup('Issue Handler');
-    core.info('Enabling dry-run mode, no changes will be made');
+    if (issueHandlerDryRun) {
+      core.info('Enabling dry-run mode, no changes will be made');
+    }
     await handleIssue(issueHandlerToken, issueHandlerConfig, issueHandlerDryRun);
     core.endGroup();
   } catch (error) {

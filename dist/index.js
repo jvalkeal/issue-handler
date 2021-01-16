@@ -9327,7 +9327,9 @@ function run() {
             const issueHandlerConfig = inputRequired('config');
             const issueHandlerDryRun = Boolean(inputNotRequired('dry-run'));
             core.startGroup('Issue Handler');
-            core.info('Enabling dry-run mode, no changes will be made');
+            if (issueHandlerDryRun) {
+                core.info('Enabling dry-run mode, no changes will be made');
+            }
             yield handler_1.handleIssue(issueHandlerToken, issueHandlerConfig, issueHandlerDryRun);
             core.endGroup();
         }
