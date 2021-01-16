@@ -1,5 +1,6 @@
 import moment from 'moment';
 
+const NOWMINUS1H = moment().subtract(1, 'hours').toISOString();
 const NOWMINUS1D = moment().subtract(1, 'days').toISOString();
 const NOWMINUS2D = moment().subtract(2, 'days').toISOString();
 const NOWMINUS3D = moment().subtract(3, 'days').toISOString();
@@ -85,7 +86,7 @@ export const GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT = {
             number: 1,
             title: 'title1',
             createdAt: NOWMINUS6D,
-            updatedAt: NOWMINUS1D,
+            updatedAt: NOWMINUS1H,
             author: {
               login: 'user1'
             },
@@ -111,7 +112,7 @@ export const GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT = {
               nodes: [
                 {
                   __typename: 'IssueComment',
-                  createdAt: NOWMINUS1D,
+                  createdAt: NOWMINUS1H,
                   author: {
                     login: 'user1'
                   }

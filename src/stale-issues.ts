@@ -64,7 +64,10 @@ export async function handleStaleIssues(
 
 function getState(staleIssue: StaleIssue, staleDate: Date, closeDate: Date): IssueState {
   if (staleIssue.hasStaleLabel) {
-    if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+    // if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+    //   return IssueState.Unstale;
+    // }
+    if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > closeDate) {
       return IssueState.Unstale;
     }
     return IssueState.Close;

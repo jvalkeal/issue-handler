@@ -37418,7 +37418,10 @@ function handleStaleIssues(recipe, jexl, expressionContext, token, dryRun = fals
 exports.handleStaleIssues = handleStaleIssues;
 function getState(staleIssue, staleDate, closeDate) {
     if (staleIssue.hasStaleLabel) {
-        if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+        // if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+        //   return IssueState.Unstale;
+        // }
+        if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > closeDate) {
             return IssueState.Unstale;
         }
         return IssueState.Close;
