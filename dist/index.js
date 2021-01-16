@@ -1241,17 +1241,18 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
             } }, variables);
         const issues = yield graphql_1.graphql(graphql_2.print(graphql_3.StaleIssues), options);
         (_b = (_a = issues.repository) === null || _a === void 0 ? void 0 : _a.issues.nodes) === null || _b === void 0 ? void 0 : _b.forEach(i => {
-            var _a, _b, _c, _d, _e, _f, _g;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
             // if just to get past beyond ts null checks, we know stuff is there
             // but some reason schema typings i.e. thinks number may be undefined
             if ((i === null || i === void 0 ? void 0 : i.number) && i.title && ((_a = i.author) === null || _a === void 0 ? void 0 : _a.login)) {
                 const createdAt = new Date(i.createdAt);
                 const updatedAt = new Date(i.updatedAt);
                 // should we get label from labels or events
-                const labeledCreatedAt = (_d = (_c = (_b = i.labeledEventsTimeline) === null || _b === void 0 ? void 0 : _b.nodes) === null || _c === void 0 ? void 0 : _c.reverse().filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').filter(ti => ti.label.name === staleLabel).find(ti => ti)) === null || _d === void 0 ? void 0 : _d.createdAt;
+                const labels = ((_c = (_b = i.labels) === null || _b === void 0 ? void 0 : _b.nodes) === null || _c === void 0 ? void 0 : _c.filter(notEmpty).map(l => l === null || l === void 0 ? void 0 : l.name)) || [];
+                const labeledCreatedAt = (_f = (_e = (_d = i.labeledEventsTimeline) === null || _d === void 0 ? void 0 : _d.nodes) === null || _e === void 0 ? void 0 : _e.reverse().filter((ti) => (ti === null || ti === void 0 ? void 0 : ti.__typename) === 'LabeledEvent').filter(ti => ti.label.name === staleLabel).find(ti => ti)) === null || _f === void 0 ? void 0 : _f.createdAt;
                 const hasStaleLabel = labeledCreatedAt !== undefined;
                 const staleAt = labeledCreatedAt !== undefined ? new Date(labeledCreatedAt) : undefined;
-                const lastComment = (_g = (_f = (_e = i.issueCommentsTimeline) === null || _e === void 0 ? void 0 : _e.nodes) === null || _f === void 0 ? void 0 : _f.reverse().filter((ic) => (ic === null || ic === void 0 ? void 0 : ic.__typename) === 'IssueComment').filter(ic => { var _a, _b; return ((_a = ic.author) === null || _a === void 0 ? void 0 : _a.login) === ((_b = i.author) === null || _b === void 0 ? void 0 : _b.login); }).find(ic => ic)) === null || _g === void 0 ? void 0 : _g.createdAt;
+                const lastComment = (_j = (_h = (_g = i.issueCommentsTimeline) === null || _g === void 0 ? void 0 : _g.nodes) === null || _h === void 0 ? void 0 : _h.reverse().filter((ic) => (ic === null || ic === void 0 ? void 0 : ic.__typename) === 'IssueComment').filter(ic => { var _a, _b; return ((_a = ic.author) === null || _a === void 0 ? void 0 : _a.login) === ((_b = i.author) === null || _b === void 0 ? void 0 : _b.login); }).find(ic => ic)) === null || _j === void 0 ? void 0 : _j.createdAt;
                 const lastCommentAt = lastComment !== undefined ? new Date(lastComment) : undefined;
                 staleIssues.push({
                     number: i.number,
@@ -1259,6 +1260,7 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
                     title: i.title,
                     createdAt,
                     updatedAt,
+                    labels,
                     hasStaleLabel,
                     staleLabelAt: staleAt,
                     lastCommentAt
@@ -1273,6 +1275,9 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
     });
 }
 exports.queryStaleIssues = queryStaleIssues;
+function notEmpty(value) {
+    return value !== null && value !== undefined;
+}
 
 
 /***/ }),
@@ -1584,12 +1589,24 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logFunctionDeprecation = void 0;
+exports.logDebug = exports.logInfo = exports.logWarn = exports.logFunctionDeprecation = void 0;
 const core = __importStar(__webpack_require__(470));
 function logFunctionDeprecation(oldName, newName, whenRemoved) {
     core.warning(`Function '${oldName}' is deprecated and will be removed in '${whenRemoved}',  use '${newName}'`);
 }
 exports.logFunctionDeprecation = logFunctionDeprecation;
+function logWarn(message) {
+    core.warning(message);
+}
+exports.logWarn = logWarn;
+function logInfo(message) {
+    core.info(message);
+}
+exports.logInfo = logInfo;
+function logDebug(message) {
+    core.debug(message);
+}
+exports.logDebug = logDebug;
 
 
 /***/ }),
@@ -9133,6 +9150,12 @@ exports.StaleIssues = graphql_tag_1.default `
         updatedAt
         author {
           login
+        }
+        labels(first: 100) {
+          totalCount
+          nodes {
+            name
+          }
         }
         labeledEventsTimeline: timelineItems(last: 4, itemTypes: [LABELED_EVENT]) {
           totalCount
@@ -37344,6 +37367,17 @@ const util_1 = __webpack_require__(669);
 const moment_1 = __importDefault(__webpack_require__(482));
 const github_graphql_utils_1 = __webpack_require__(63);
 const github_utils_1 = __webpack_require__(888);
+var IssueState;
+(function (IssueState) {
+    // issue is good
+    IssueState["Active"] = "Active";
+    // issue should become stale
+    IssueState["Stale"] = "Stale";
+    // issue should get unstaled
+    IssueState["Unstale"] = "Unstale";
+    // issue should get closed from stale
+    IssueState["Close"] = "Close";
+})(IssueState || (IssueState = {}));
 /**
  * Main hook to handle stale issues recipe.
  */
@@ -37362,11 +37396,28 @@ function handleStaleIssues(recipe, jexl, expressionContext, token, dryRun = fals
     });
 }
 exports.handleStaleIssues = handleStaleIssues;
+function getState(staleIssue, staleDate, closeDate) {
+    if (staleIssue.hasStaleLabel) {
+        if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+            return IssueState.Unstale;
+        }
+        return IssueState.Close;
+    }
+    else {
+        const diffInDays = moment_1.default(staleDate).diff(moment_1.default(staleIssue.updatedAt), 'days');
+        if (diffInDays > 0) {
+            return IssueState.Stale;
+        }
+    }
+    return IssueState.Active;
+}
 function processIssues(token, expressionContext, staleIssues, config, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
         // when issues become stale
         core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
-        const staleDate = moment_1.default(new Date()).subtract(config.issueDaysBeforeStale, 'days');
+        const staleDate = moment_1.default(new Date())
+            .subtract(config.issueDaysBeforeStale, 'days')
+            .toDate();
         core.info(`staleDate ${staleDate}`);
         const closeDate = moment_1.default(new Date())
             .subtract(config.issueDaysBeforeClose, 'days')
@@ -37374,52 +37425,57 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
         core.info(`closeDate ${closeDate}`);
         // going through issues
         for (const i of staleIssues) {
-            core.info(`#${i.number} updatedAt ${i.updatedAt}`);
-            if (i.updatedAt) {
-                const diffInDays = moment_1.default(staleDate).diff(moment_1.default(i.updatedAt), 'days');
-                core.info(`#${i.number} stale diff ${diffInDays} days`);
-                if (diffInDays > 0) {
-                    yield handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
-                }
+            const state = getState(i, staleDate, closeDate);
+            core.info(`#${i.number} state ${state}`);
+            switch (state) {
+                case IssueState.Stale:
+                    yield handleStaleIssue(token, expressionContext, i, config, dryRun);
+                    break;
+                case IssueState.Unstale:
+                    yield handleUnstaleIssue(token, expressionContext, i, config, dryRun);
+                    break;
+                case IssueState.Close:
+                    yield handleCloseIssue(token, expressionContext, i, config, dryRun);
+                    break;
+                default:
+                    break;
             }
         }
     });
 }
-function handleStaleIssue(token, expressionContext, staleIssue, config, closeDate, dryRun) {
+function handleStaleIssue(token, expressionContext, staleIssue, config, dryRun) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.info(`Handling stale issue #${staleIssue.number}`);
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
-        // if no stale label, add it
-        if (!staleIssue.hasStaleLabel) {
-            core.info(`Issue #${staleIssue.number} to become stale`);
-            if (!dryRun) {
-                yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
-            }
+        core.info(`Issue #${staleIssue.number} to become stale`);
+        if (!dryRun) {
+            yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
         }
-        else if (staleIssue.staleLabelAt) {
-            if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
-                // there's a user comment after stale label, un-stale
-                core.info(`Issue #${staleIssue.number} to become un-stale`);
-                if (!dryRun) {
-                    yield github_utils_1.removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
-                }
-            }
-            else {
-                // if stale label exists, check timeline when it was marked stale,
-                // then close if stale enough time
-                if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
-                    core.info(`Issue #${staleIssue.number} to close as stale`);
-                    if (!dryRun) {
-                        yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
-                    }
-                    if (config.issueCloseLabel) {
-                        core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
-                        if (!dryRun) {
-                            yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
-                        }
-                    }
-                }
+    });
+}
+function handleUnstaleIssue(token, expressionContext, staleIssue, config, dryRun) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const owner = expressionContext.context.repo.owner;
+        const repo = expressionContext.context.repo.repo;
+        core.info(`Issue #${staleIssue.number} to become un-stale`);
+        if (!dryRun) {
+            yield github_utils_1.removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+        }
+    });
+}
+function handleCloseIssue(token, expressionContext, staleIssue, config, dryRun) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const owner = expressionContext.context.repo.owner;
+        const repo = expressionContext.context.repo.repo;
+        core.info(`Issue #${staleIssue.number} to close as stale`);
+        if (!dryRun) {
+            yield github_utils_1.closeIssue(token, owner, repo, staleIssue.number);
+            yield github_utils_1.removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+        }
+        if (config.issueCloseLabel) {
+            core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
+            if (!dryRun) {
+                yield github_utils_1.addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
             }
         }
     });
@@ -37435,6 +37491,9 @@ function resolveConfig(recipe) {
         issueCloseLabel: recipe.issueCloseLabel
     };
 }
+/**
+ * Returns value or default and handles if value is "falsy".
+ */
 function numberValue(value, defaultValue) {
     if (value === 0) {
         return value;

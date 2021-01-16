@@ -25,6 +25,17 @@ export interface StaleIssuesConfig {
   issueCloseLabel: string | undefined;
 }
 
+enum IssueState {
+  // issue is good
+  Active = 'Active',
+  // issue should become stale
+  Stale = 'Stale',
+  // issue should get unstaled
+  Unstale = 'Unstale',
+  // issue should get closed from stale
+  Close = 'Close'
+}
+
 /**
  * Main hook to handle stale issues recipe.
  */
@@ -50,6 +61,21 @@ export async function handleStaleIssues(
   await processIssues(token, expressionContext, staleIssues, config, dryRun);
 }
 
+function getState(staleIssue: StaleIssue, staleDate: Date, closeDate: Date): IssueState {
+  if (staleIssue.hasStaleLabel) {
+    if (staleIssue.lastCommentAt && staleIssue.staleLabelAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
+      return IssueState.Unstale;
+    }
+    return IssueState.Close;
+  } else {
+    const diffInDays = moment(staleDate).diff(moment(staleIssue.updatedAt), 'days');
+    if (diffInDays > 0) {
+      return IssueState.Stale;
+    }
+  }
+  return IssueState.Active;
+}
+
 async function processIssues(
   token: string,
   expressionContext: ExpressionContext,
@@ -59,7 +85,9 @@ async function processIssues(
 ) {
   // when issues become stale
   core.info(`issueDaysBeforeStale ${config.issueDaysBeforeStale}`);
-  const staleDate = moment(new Date()).subtract(config.issueDaysBeforeStale, 'days');
+  const staleDate = moment(new Date())
+    .subtract(config.issueDaysBeforeStale, 'days')
+    .toDate();
   core.info(`staleDate ${staleDate}`);
   const closeDate = moment(new Date())
     .subtract(config.issueDaysBeforeClose, 'days')
@@ -68,15 +96,21 @@ async function processIssues(
 
   // going through issues
   for (const i of staleIssues) {
-    core.info(`#${i.number} updatedAt ${i.updatedAt}`);
-    // if (i.updatedAt) {
-    //   const diffInDays = moment(staleDate).diff(moment(i.updatedAt), 'days');
-    //   core.info(`#${i.number} stale diff ${diffInDays} days`);
-    //   if (diffInDays > 0) {
-    //     await handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
-    //   }
-    // }
-    await handleStaleIssue(token, expressionContext, i, config, closeDate, dryRun);
+    const state = getState(i, staleDate, closeDate);
+    core.info(`#${i.number} state ${state}`);
+    switch (state) {
+      case IssueState.Stale:
+        await handleStaleIssue(token, expressionContext, i, config, dryRun);
+        break;
+      case IssueState.Unstale:
+        await handleUnstaleIssue(token, expressionContext, i, config, dryRun);
+        break;
+      case IssueState.Close:
+        await handleCloseIssue(token, expressionContext, i, config, dryRun);
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -85,41 +119,49 @@ async function handleStaleIssue(
   expressionContext: ExpressionContext,
   staleIssue: StaleIssue,
   config: StaleIssuesConfig,
-  closeDate: Date,
   dryRun: boolean
 ) {
-  core.info(`Handling stale issue #${staleIssue.number}`);
   const owner = expressionContext.context.repo.owner;
   const repo = expressionContext.context.repo.repo;
+  core.info(`Issue #${staleIssue.number} to become stale`);
+  if (!dryRun) {
+    await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+  }
+}
 
-  // if no stale label, add it
-  if (!staleIssue.hasStaleLabel) {
-    core.info(`Issue #${staleIssue.number} to become stale`);
+async function handleUnstaleIssue(
+  token: string,
+  expressionContext: ExpressionContext,
+  staleIssue: StaleIssue,
+  config: StaleIssuesConfig,
+  dryRun: boolean
+) {
+  const owner = expressionContext.context.repo.owner;
+  const repo = expressionContext.context.repo.repo;
+  core.info(`Issue #${staleIssue.number} to become un-stale`);
+  if (!dryRun) {
+    await removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+  }
+}
+
+async function handleCloseIssue(
+  token: string,
+  expressionContext: ExpressionContext,
+  staleIssue: StaleIssue,
+  config: StaleIssuesConfig,
+  dryRun: boolean
+) {
+  const owner = expressionContext.context.repo.owner;
+  const repo = expressionContext.context.repo.repo;
+  core.info(`Issue #${staleIssue.number} to close as stale`);
+  if (!dryRun) {
+    await closeIssue(token, owner, repo, staleIssue.number);
+    await removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
+  }
+  if (config.issueCloseLabel) {
+    core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
     if (!dryRun) {
-      await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
-    }
-  } else if (staleIssue.staleLabelAt) {
-    if (staleIssue.lastCommentAt && staleIssue.lastCommentAt > staleIssue.staleLabelAt) {
-      // there's a user comment after stale label, un-stale
-      core.info(`Issue #${staleIssue.number} to become un-stale`);
-      if (!dryRun) {
-        await removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
-      }
-    } else {
-      // if stale label exists, check timeline when it was marked stale,
-      // then close if stale enough time
-      if (staleIssue.staleLabelAt && staleIssue.staleLabelAt < closeDate) {
-        core.info(`Issue #${staleIssue.number} to close as stale`);
-        if (!dryRun) {
-          await closeIssue(token, owner, repo, staleIssue.number);
-        }
-        if (config.issueCloseLabel) {
-          core.info(`Issue #${staleIssue.number} add close label ${config.issueCloseLabel}`);
-          if (!dryRun) {
-            await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
-          }
-        }
-      }
+      await addLabelsToIssue(token, owner, repo, staleIssue.number, [config.issueCloseLabel]);
     }
   }
 }
@@ -136,7 +178,10 @@ function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
   };
 }
 
-function numberValue(value: number | undefined, defaultValue: number) {
+/**
+ * Returns value or default and handles if value is "falsy".
+ */
+function numberValue(value: number | undefined, defaultValue: number): number {
   if (value === 0) {
     return value;
   }

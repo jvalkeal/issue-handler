@@ -27,7 +27,7 @@ export const GQ_1_STALE_NO_LABELS = {
   }
 };
 
-export const GQ_1_STALE_HAVE_STALE_LABEL = {
+export const GQ_1_STALE_HAVE_STALE_LABEL_OLD_COMMENT = {
   data: {
     repository: {
       issues: {
@@ -62,7 +62,56 @@ export const GQ_1_STALE_HAVE_STALE_LABEL = {
               nodes: [
                 {
                   __typename: 'IssueComment',
+                  createdAt: NOWMINUS4D,
+                  author: {
+                    login: 'user1'
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+};
+
+export const GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT = {
+  data: {
+    repository: {
+      issues: {
+        nodes: [
+          {
+            number: 1,
+            title: 'title1',
+            createdAt: NOWMINUS6D,
+            updatedAt: NOWMINUS1D,
+            author: {
+              login: 'user1'
+            },
+            labels: {
+              nodes: [
+                {
+                  name: 'stale'
+                }
+              ]
+            },
+            labeledEventsTimeline: {
+              nodes: [
+                {
+                  __typename: 'LabeledEvent',
                   createdAt: NOWMINUS3D,
+                  label: {
+                    name: 'stale'
+                  }
+                }
+              ]
+            },
+            issueCommentsTimeline: {
+              nodes: [
+                {
+                  __typename: 'IssueComment',
+                  createdAt: NOWMINUS1D,
                   author: {
                     login: 'user1'
                   }
