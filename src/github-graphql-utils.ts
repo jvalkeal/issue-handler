@@ -26,6 +26,7 @@ export async function queryStaleIssues(
   owner: string,
   repo: string,
   staleLabel: string,
+  since: string | null = null,
   cursor: string | null = null,
   results: StaleIssue[] = []
 ): Promise<StaleIssue[]> {
@@ -33,6 +34,7 @@ export async function queryStaleIssues(
   const variables: StaleIssuesQueryVariables = {
     owner,
     repo,
+    since,
     cursor
   };
   const options: RequestParameters = {
@@ -85,7 +87,7 @@ export async function queryStaleIssues(
   results.push(...staleIssues);
 
   if (issues.repository?.issues.pageInfo?.hasNextPage) {
-    await queryStaleIssues(token, owner, repo, staleLabel, issues.repository.issues.pageInfo.endCursor, results);
+    await queryStaleIssues(token, owner, repo, staleLabel, since, issues.repository.issues.pageInfo.endCursor, results);
   }
 
   return results;

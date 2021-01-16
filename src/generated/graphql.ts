@@ -28247,9 +28247,9 @@ export type IResolvers<ContextType = any> = Resolvers<ContextType>;
 
 
 export const StaleIssues = gql`
-    query StaleIssues($owner: String!, $repo: String!, $cursor: String) {
+    query StaleIssues($owner: String!, $repo: String!, $since: DateTime, $cursor: String) {
   repository(owner: $owner, name: $repo) {
-    issues(last: 100, states: OPEN, after: $cursor) {
+    issues(last: 100, states: OPEN, after: $cursor, filterBy: {since: $since}) {
       pageInfo {
         endCursor
         hasNextPage
@@ -28300,6 +28300,7 @@ export const StaleIssues = gql`
 export type StaleIssuesQueryVariables = Exact<{
   owner: Scalars['String'];
   repo: Scalars['String'];
+  since?: Maybe<Scalars['DateTime']>;
   cursor?: Maybe<Scalars['String']>;
 }>;
 

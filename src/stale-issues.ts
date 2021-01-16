@@ -8,15 +8,15 @@ import { addLabelsToIssue, closeIssue, removeLabelFromIssue, addCommentToIssue }
 import { numberValue } from './utils';
 
 export interface StaleIssues {
-  issueHandleSince?: string;
+  // issueHandleSince?: string;
   issueBeforeStale?: number | string;
   issueBeforeClose?: number | string;
   issueStaleMessage?: string;
   issueCloseMessage?: string;
   issueStaleLabel?: string;
   issueCloseLabel?: string;
-  issueExemptLabels?: string | string[];
-  issueRemoveStaleWhenUpdated?: boolean;
+  // issueExemptLabels?: string | string[];
+  // issueRemoveStaleWhenUpdated?: boolean;
 }
 
 export interface StaleIssuesConfig {

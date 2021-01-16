@@ -1227,13 +1227,14 @@ exports.queryStaleIssues = void 0;
 const graphql_1 = __webpack_require__(898);
 const graphql_2 = __webpack_require__(232);
 const graphql_3 = __webpack_require__(194);
-function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results = []) {
+function queryStaleIssues(token, owner, repo, staleLabel, since = null, cursor = null, results = []) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         const staleIssues = [];
         const variables = {
             owner,
             repo,
+            since,
             cursor
         };
         const options = Object.assign({ headers: {
@@ -1269,7 +1270,7 @@ function queryStaleIssues(token, owner, repo, staleLabel, cursor = null, results
         });
         results.push(...staleIssues);
         if ((_d = (_c = issues.repository) === null || _c === void 0 ? void 0 : _c.issues.pageInfo) === null || _d === void 0 ? void 0 : _d.hasNextPage) {
-            yield queryStaleIssues(token, owner, repo, staleLabel, issues.repository.issues.pageInfo.endCursor, results);
+            yield queryStaleIssues(token, owner, repo, staleLabel, since, issues.repository.issues.pageInfo.endCursor, results);
         }
         return results;
     });
@@ -9155,9 +9156,9 @@ var UserStatusOrderField;
     UserStatusOrderField["UpdatedAt"] = "UPDATED_AT";
 })(UserStatusOrderField = exports.UserStatusOrderField || (exports.UserStatusOrderField = {}));
 exports.StaleIssues = graphql_tag_1.default `
-    query StaleIssues($owner: String!, $repo: String!, $cursor: String) {
+    query StaleIssues($owner: String!, $repo: String!, $since: DateTime, $cursor: String) {
   repository(owner: $owner, name: $repo) {
-    issues(last: 100, states: OPEN, after: $cursor) {
+    issues(last: 100, states: OPEN, after: $cursor, filterBy: {since: $since}) {
       pageInfo {
         endCursor
         hasNextPage

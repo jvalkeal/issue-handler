@@ -1,6 +1,6 @@
-query StaleIssues($owner: String!, $repo: String!, $cursor: String) {
+query StaleIssues($owner: String!, $repo: String!, $since: DateTime, $cursor: String) {
   repository(owner:$owner, name:$repo) {
-    issues(last: 100, states:OPEN, after:$cursor) {
+    issues(last: 100, states:OPEN, after:$cursor, filterBy:{since:$since}) {
       pageInfo {
         endCursor
         hasNextPage
