@@ -15,7 +15,7 @@ export interface StaleIssues {
   issueCloseMessage?: string;
   issueStaleLabel?: string;
   issueCloseLabel?: string;
-  // issueExemptLabels?: string | string[];
+  issueExemptLabels?: string | string[];
   // issueRemoveStaleWhenUpdated?: boolean;
 }
 
@@ -27,6 +27,7 @@ export interface StaleIssuesConfig {
   issueCloseLabel: string | undefined;
   issueStaleMessage: string | undefined;
   issueCloseMessage: string | undefined;
+  issueExemptLabels: string[];
 }
 
 enum IssueState {
@@ -97,6 +98,12 @@ async function processIssues(
 
   // going through issues
   for (const i of staleIssues) {
+    const exempt = config.issueExemptLabels.some(l => i.labels.indexOf(l) !== -1);
+    if (exempt) {
+      core.info(`#${i.number} exempt due to issueExemptLabels`);
+      continue;
+    }
+
     const state = getState(i, staleDate, closeDate);
     core.info(`#${i.number} state ${state}`);
     switch (state) {
@@ -230,6 +237,13 @@ function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
       .toDate();
   }
 
+  let issueExemptLabels: string[] = [];
+  if (typeof recipe.issueExemptLabels === 'string') {
+    issueExemptLabels = [recipe.issueExemptLabels];
+  } else if (Array.isArray(recipe.issueExemptLabels)) {
+    issueExemptLabels = [...recipe.issueExemptLabels];
+  }
+
   return {
     issueSince,
     issueBeforeStale,
@@ -237,6 +251,7 @@ function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
     issueStaleLabel: recipe.issueStaleLabel || 'stale',
     issueCloseLabel: recipe.issueCloseLabel,
     issueStaleMessage: recipe.issueStaleMessage,
-    issueCloseMessage: recipe.issueCloseMessage
+    issueCloseMessage: recipe.issueCloseMessage,
+    issueExemptLabels
   };
 }

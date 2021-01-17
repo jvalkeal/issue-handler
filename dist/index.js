@@ -37458,6 +37458,11 @@ function processIssues(token, expressionContext, staleIssues, config, dryRun) {
         core.info(`closeDate ${closeDate}`);
         // going through issues
         for (const i of staleIssues) {
+            const exempt = config.issueExemptLabels.some(l => i.labels.indexOf(l) !== -1);
+            if (exempt) {
+                core.info(`#${i.number} exempt due to issueExemptLabels`);
+                continue;
+            }
             const state = getState(i, staleDate, closeDate);
             core.info(`#${i.number} state ${state}`);
             switch (state) {
@@ -37579,6 +37584,13 @@ function resolveConfig(recipe) {
             .subtract(7, 'days')
             .toDate();
     }
+    let issueExemptLabels = [];
+    if (typeof recipe.issueExemptLabels === 'string') {
+        issueExemptLabels = [recipe.issueExemptLabels];
+    }
+    else if (Array.isArray(recipe.issueExemptLabels)) {
+        issueExemptLabels = [...recipe.issueExemptLabels];
+    }
     return {
         issueSince,
         issueBeforeStale,
@@ -37586,7 +37598,8 @@ function resolveConfig(recipe) {
         issueStaleLabel: recipe.issueStaleLabel || 'stale',
         issueCloseLabel: recipe.issueCloseLabel,
         issueStaleMessage: recipe.issueStaleMessage,
-        issueCloseMessage: recipe.issueCloseMessage
+        issueCloseMessage: recipe.issueCloseMessage,
+        issueExemptLabels
     };
 }
 

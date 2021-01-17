@@ -166,6 +166,13 @@ export const GQ_2_ISSUES = {
             title: 'title1',
             createdAt: NOWMINUS6D,
             updatedAt: NOWMINUS2D,
+            labels: {
+              nodes: [
+                {
+                  name: 'exempt'
+                }
+              ]
+            },
             author: {
               login: 'user1'
             }
@@ -174,7 +181,14 @@ export const GQ_2_ISSUES = {
             number: 2,
             title: 'title2',
             createdAt: NOWMINUS6D,
-            updatedAt: NOWMINUS5D,
+            updatedAt: NOWMINUS4D,
+            labels: {
+              nodes: [
+                {
+                  name: 'random'
+                }
+              ]
+            },
             author: {
               login: 'user2'
             }

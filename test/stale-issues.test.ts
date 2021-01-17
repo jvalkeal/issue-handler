@@ -8,7 +8,8 @@ import {
   GQ_1_STALE_HAVE_STALE_LABEL_OLD_COMMENT,
   GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT,
   GQ_1_STALE_NO_LABELS,
-  GQ_1_EMPTY
+  GQ_1_EMPTY,
+  GQ_2_ISSUES
 } from './data/stale-issues.mock';
 import * as githubUtils from '../src/github-utils';
 
@@ -162,5 +163,36 @@ describe('stale-issues tests', () => {
     expect(spy3).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
     expect(spy1).not.toHaveBeenCalled();
     expect(spy2).not.toHaveBeenCalled();
+  });
+
+  it('exempt label skips handling', async () => {
+    const addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    const closeIssueSpy = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    const removeLabelFromIssueSpy = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+
+    nock('https://api.github.com')
+      .post('/graphql')
+      .reply(200, GQ_2_ISSUES);
+
+    const action: StaleIssues = {
+      issueBeforeStale: 1,
+      issueExemptLabels: ['exempt']
+    };
+    const jexl = new Jexl();
+    await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
+    expect(addLabelsToIssueSpy).toBeCalledTimes(1);
+    expect(addLabelsToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 2, ['stale']);
+    expect(closeIssueSpy).not.toHaveBeenCalled();
+    expect(removeLabelFromIssueSpy).not.toHaveBeenCalled();
+    expect(addCommentToIssueSpy).not.toHaveBeenCalled();
   });
 });
