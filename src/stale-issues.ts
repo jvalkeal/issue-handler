@@ -16,7 +16,7 @@ export interface StaleIssues {
   issueStaleLabel?: string;
   issueCloseLabel?: string;
   issueExemptLabels?: string | string[];
-  // issueRemoveStaleWhenUpdated?: boolean;
+  issueRemoveStaleWhenUpdated?: boolean;
 }
 
 export interface StaleIssuesConfig {
@@ -28,6 +28,7 @@ export interface StaleIssuesConfig {
   issueStaleMessage: string | undefined;
   issueCloseMessage: string | undefined;
   issueExemptLabels: string[];
+  issueRemoveStaleWhenUpdated: boolean;
 }
 
 enum IssueState {
@@ -152,6 +153,10 @@ async function handleUnstaleIssue(
 ) {
   const owner = expressionContext.context.repo.owner;
   const repo = expressionContext.context.repo.repo;
+  if (!config.issueRemoveStaleWhenUpdated) {
+    core.info(`Issue #${staleIssue.number} skip un-stale due to issueRemoveStaleWhenUpdated`);
+    return;
+  }
   core.info(`Issue #${staleIssue.number} to become un-stale`);
   if (!dryRun) {
     await removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
@@ -252,6 +257,7 @@ function resolveConfig(recipe: StaleIssues): StaleIssuesConfig {
     issueCloseLabel: recipe.issueCloseLabel,
     issueStaleMessage: recipe.issueStaleMessage,
     issueCloseMessage: recipe.issueCloseMessage,
-    issueExemptLabels
+    issueExemptLabels,
+    issueRemoveStaleWhenUpdated: recipe.issueRemoveStaleWhenUpdated === false ? false : true
   };
 }

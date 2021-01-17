@@ -165,6 +165,38 @@ describe('stale-issues tests', () => {
     expect(spy2).not.toHaveBeenCalled();
   });
 
+  it('skip unstale stale issue when updated with config', async () => {
+    const addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    const closeIssueSpy = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    const removeLabelFromIssueSpy = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+
+    nock('https://api.github.com')
+      .post('/graphql')
+      .reply(200, GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT);
+
+    const action: StaleIssues = {
+      issueBeforeStale: 2,
+      issueBeforeClose: 1,
+      issueCloseLabel: 'closed',
+      issueRemoveStaleWhenUpdated: false
+    };
+    const jexl = new Jexl();
+    await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
+    expect(addLabelsToIssueSpy).not.toHaveBeenCalled();
+    expect(closeIssueSpy).not.toHaveBeenCalled();
+    expect(removeLabelFromIssueSpy).not.toHaveBeenCalled();
+    expect(addCommentToIssueSpy).not.toHaveBeenCalled();
+  });
+
   it('exempt label skips handling', async () => {
     const addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
       return Promise.resolve();

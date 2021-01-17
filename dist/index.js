@@ -37501,6 +37501,10 @@ function handleUnstaleIssue(token, expressionContext, staleIssue, config, dryRun
     return __awaiter(this, void 0, void 0, function* () {
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
+        if (!config.issueRemoveStaleWhenUpdated) {
+            core.info(`Issue #${staleIssue.number} skip un-stale due to issueRemoveStaleWhenUpdated`);
+            return;
+        }
         core.info(`Issue #${staleIssue.number} to become un-stale`);
         if (!dryRun) {
             yield github_utils_1.removeLabelFromIssue(token, owner, repo, staleIssue.number, [config.issueStaleLabel]);
@@ -37599,7 +37603,8 @@ function resolveConfig(recipe) {
         issueCloseLabel: recipe.issueCloseLabel,
         issueStaleMessage: recipe.issueStaleMessage,
         issueCloseMessage: recipe.issueCloseMessage,
-        issueExemptLabels
+        issueExemptLabels,
+        issueRemoveStaleWhenUpdated: recipe.issueRemoveStaleWhenUpdated === false ? false : true
     };
 }
 
