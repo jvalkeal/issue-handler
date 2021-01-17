@@ -23,14 +23,27 @@ describe('stale-issues tests', () => {
     data: {}
   };
 
-  it('stale issue with since', async () => {
-    const addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
+  let addLabelsToIssueSpy: jest.SpyInstance<Promise<void>>;
+  let closeIssueSpy: jest.SpyInstance<Promise<void>>;
+  let removeLabelFromIssueSpy: jest.SpyInstance<Promise<void>>;
+  let addCommentToIssueSpy: jest.SpyInstance<Promise<void>>;
 
+  beforeEach(() => {
+    addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    closeIssueSpy = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    removeLabelFromIssueSpy = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+    addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
+      return Promise.resolve();
+    });
+  });
+
+  it('stale issue with since', async () => {
     nock('https://api.github.com')
       .post('/graphql', body => {
         const ret = lodash.isMatchWith(
@@ -54,18 +67,14 @@ describe('stale-issues tests', () => {
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
+
     expect(addLabelsToIssueSpy).not.toHaveBeenCalled();
+    expect(closeIssueSpy).not.toHaveBeenCalled();
+    expect(removeLabelFromIssueSpy).not.toHaveBeenCalled();
     expect(addCommentToIssueSpy).not.toHaveBeenCalled();
   });
 
   it('stale issue - default label', async () => {
-    const spy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-
     nock('https://api.github.com')
       .post('/graphql')
       .reply(200, GQ_1_STALE_NO_LABELS);
@@ -75,21 +84,14 @@ describe('stale-issues tests', () => {
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
-    expect(spy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
+
+    expect(addLabelsToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
+    expect(closeIssueSpy).not.toHaveBeenCalled();
+    expect(removeLabelFromIssueSpy).not.toHaveBeenCalled();
     expect(addCommentToIssueSpy).not.toHaveBeenCalled();
   });
 
   it('stale issue - change default label', async () => {
-    const spy1 = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const spy2 = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-
     nock('https://api.github.com')
       .post('/graphql')
       .reply(200, GQ_1_STALE_NO_LABELS);
@@ -101,25 +103,14 @@ describe('stale-issues tests', () => {
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
-    expect(spy1).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['status/stale']);
-    expect(spy2).not.toHaveBeenCalled();
+
+    expect(addLabelsToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['status/stale']);
+    expect(closeIssueSpy).not.toHaveBeenCalled();
+    expect(removeLabelFromIssueSpy).not.toHaveBeenCalled();
     expect(addCommentToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, 'marking stale');
   });
 
   it('closes stale issue', async () => {
-    const spy1 = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const spy2 = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const spy3 = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-
     nock('https://api.github.com')
       .post('/graphql')
       .reply(200, GQ_1_STALE_HAVE_STALE_LABEL_OLD_COMMENT);
@@ -132,23 +123,14 @@ describe('stale-issues tests', () => {
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
-    expect(spy2).toHaveBeenCalledWith('token', 'owner', 'repo', 1);
-    expect(spy3).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
-    expect(spy1).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['closed']);
+
+    expect(addLabelsToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['closed']);
+    expect(closeIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1);
+    expect(removeLabelFromIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
     expect(addCommentToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, 'marking closed');
   });
 
   it('unstale stale issue when updated', async () => {
-    const spy1 = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const spy2 = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const spy3 = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-
     nock('https://api.github.com')
       .post('/graphql')
       .reply(200, GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT);
@@ -160,25 +142,14 @@ describe('stale-issues tests', () => {
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
-    expect(spy3).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
-    expect(spy1).not.toHaveBeenCalled();
-    expect(spy2).not.toHaveBeenCalled();
+
+    expect(addLabelsToIssueSpy).not.toHaveBeenCalled();
+    expect(closeIssueSpy).not.toHaveBeenCalled();
+    expect(removeLabelFromIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 1, ['stale']);
+    expect(addCommentToIssueSpy).not.toHaveBeenCalled();
   });
 
   it('skip unstale stale issue when updated with config', async () => {
-    const addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const closeIssueSpy = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const removeLabelFromIssueSpy = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-
     nock('https://api.github.com')
       .post('/graphql')
       .reply(200, GQ_1_STALE_HAVE_STALE_LABEL_NEW_COMMENT);
@@ -187,10 +158,11 @@ describe('stale-issues tests', () => {
       issueBeforeStale: 2,
       issueBeforeClose: 1,
       issueCloseLabel: 'closed',
-      issueRemoveStaleWhenUpdated: false
+      issueUnstaleWhenUpdated: false
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
+
     expect(addLabelsToIssueSpy).not.toHaveBeenCalled();
     expect(closeIssueSpy).not.toHaveBeenCalled();
     expect(removeLabelFromIssueSpy).not.toHaveBeenCalled();
@@ -198,19 +170,6 @@ describe('stale-issues tests', () => {
   });
 
   it('exempt label skips handling', async () => {
-    const addLabelsToIssueSpy = jest.spyOn(githubUtils, 'addLabelsToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const closeIssueSpy = jest.spyOn(githubUtils, 'closeIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const removeLabelFromIssueSpy = jest.spyOn(githubUtils, 'removeLabelFromIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-    const addCommentToIssueSpy = jest.spyOn(githubUtils, 'addCommentToIssue').mockImplementation(() => {
-      return Promise.resolve();
-    });
-
     nock('https://api.github.com')
       .post('/graphql')
       .reply(200, GQ_2_ISSUES);
@@ -221,6 +180,7 @@ describe('stale-issues tests', () => {
     };
     const jexl = new Jexl();
     await handleStaleIssues(action, jexl, EC_WORKFLOW_DISPATCH_1, 'token');
+
     expect(addLabelsToIssueSpy).toBeCalledTimes(1);
     expect(addLabelsToIssueSpy).toHaveBeenCalledWith('token', 'owner', 'repo', 2, ['stale']);
     expect(closeIssueSpy).not.toHaveBeenCalled();

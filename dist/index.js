@@ -37501,7 +37501,7 @@ function handleUnstaleIssue(token, expressionContext, staleIssue, config, dryRun
     return __awaiter(this, void 0, void 0, function* () {
         const owner = expressionContext.context.repo.owner;
         const repo = expressionContext.context.repo.repo;
-        if (!config.issueRemoveStaleWhenUpdated) {
+        if (!config.issueUnstaleWhenUpdated) {
             core.info(`Issue #${staleIssue.number} skip un-stale due to issueRemoveStaleWhenUpdated`);
             return;
         }
@@ -37604,7 +37604,7 @@ function resolveConfig(recipe) {
         issueStaleMessage: recipe.issueStaleMessage,
         issueCloseMessage: recipe.issueCloseMessage,
         issueExemptLabels,
-        issueRemoveStaleWhenUpdated: recipe.issueRemoveStaleWhenUpdated === false ? false : true
+        issueUnstaleWhenUpdated: recipe.issueUnstaleWhenUpdated === false ? false : true
     };
 }
 
