@@ -8,6 +8,9 @@ inputs:
   config:
     description: 'Action spesific issue handler control config'
     required: true
+  dry-run:
+    description: 'Configures dry-run mode with no changes made, defaults to false. Note, applies to staleIssues only for now'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

@@ -9,6 +9,7 @@ import {
   ISSUE_LABELED_JSON_SLOW_2
 } from './data/issue-labeled.mock';
 import { PR_LABELED_JSON_1 } from './data/pr-labeled.mock';
+import { WORKFLOW_DISPATCH_1 } from './data/workflow-dispatch.mock';
 
 export const CONTEXT_UNLABELED_ISSUE = mockContext(ISSUE_UNLABELED_JSON, 'issues');
 export const CONTEXT_LABELED_ISSUE_FAST_1 = mockContext(ISSUE_LABELED_JSON_FAST_1, 'issues');
@@ -17,6 +18,7 @@ export const CONTEXT_LABELED_ISSUE_FAST_3 = mockContext(ISSUE_LABELED_JSON_FAST_
 export const CONTEXT_LABELED_ISSUE_SLOW_1 = mockContext(ISSUE_LABELED_JSON_SLOW_1, 'issues');
 export const CONTEXT_LABELED_ISSUE_SLOW_2 = mockContext(ISSUE_LABELED_JSON_SLOW_2, 'issues');
 export const CONTEXT_LABELED_PR_1 = mockContext(PR_LABELED_JSON_1, 'pull_request');
+export const CONTEXT_WORKFLOW_DISPATCH_1 = mockContext(WORKFLOW_DISPATCH_1, 'workflow_dispatch');
 
 function mockContext(data: string, eventName: string): Context {
   const c: Context = {

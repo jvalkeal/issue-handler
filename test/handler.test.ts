@@ -45,7 +45,7 @@ describe('handler tests', () => {
       }
     `;
 
-    await expect(handleIssue('token', config1)).rejects.toThrow("Invalid recipe type 'wrong'");
-    await handleIssue('token', config2);
+    await expect(handleIssue('token', config1, true)).rejects.toThrow("Invalid recipe type 'wrong'");
+    await handleIssue('token', config2, true);
   });
 });

@@ -1,6 +1,7 @@
 import { Context } from '@actions/github/lib/context';
 import { IfThen } from './if-then';
 import { ManageBackportIssues } from './manage-backport-issues';
+import { StaleIssues } from './stale-issues';
 
 export type JSONPrimitive = string | number | boolean | null;
 export type JSONValue = JSONPrimitive | JSONObject | JSONArray;
@@ -32,7 +33,8 @@ export interface IssueHandlerConfig {
  */
 export enum RecipeType {
   ifThen = 'ifThen',
-  manageBackportIssues = 'manageBackportIssues'
+  manageBackportIssues = 'manageBackportIssues',
+  staleIssues = 'staleIssues'
 }
 
 /**
@@ -40,4 +42,5 @@ export enum RecipeType {
  */
 export type Recipe =
   | ({ name: string; type: RecipeType.ifThen } & IfThen)
-  | ({ name: string; type: RecipeType.manageBackportIssues } & ManageBackportIssues);
+  | ({ name: string; type: RecipeType.manageBackportIssues } & ManageBackportIssues)
+  | ({ name: string; type: RecipeType.staleIssues } & StaleIssues);

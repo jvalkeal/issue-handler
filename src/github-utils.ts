@@ -78,6 +78,23 @@ interface IssueNumbers {
   items: { number: number }[];
 }
 
+export async function addCommentToIssue(
+  token: string,
+  owner: string,
+  repo: string,
+  issue_number: number,
+  body: string
+): Promise<void> {
+  core.info(`Adding comment to issue ${issue_number}`);
+  const octokit = github.getOctokit(token);
+  octokit.issues.createComment({
+    owner,
+    repo,
+    issue_number,
+    body
+  });
+}
+
 export async function addLabelsToIssue(
   token: string,
   owner: string,

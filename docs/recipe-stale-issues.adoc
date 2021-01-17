@@ -1,0 +1,97 @@
+# Stale Issues
+
+This recipe is meant for automating stale issue handling. Essentially this use
+case would be:
+
+- Optionally define _issueSince_ how new issues to handle.
+- Define _issueBeforeStale_ when to stale an issue.
+- Define _issueBeforeClose_ when to close a stale issue.
+- Define possible messages and labels for stale and closed issues.
+- Run manually via workflow dispatch or schedule.
+
+  issueSince?: number | string;
+  issueBeforeStale?: number | string;
+  issueBeforeClose?: number | string;
+  issueStaleMessage?: string;
+  issueCloseMessage?: string;
+  issueStaleLabel?: string;
+  issueCloseLabel?: string;
+  issueExemptLabels?: string | string[];
+  issueRemoveStaleWhenUpdated?: boolean;
+
+## Options
+
+[cols="0,5,0,0"]
+|===
+|Key|Description|Default|Usage
+
+|issueSince
+|Defined how new issues will be handled.
+|none
+|Optional
+
+|issueBeforeStale
+|Defines when issue becomes stale.
+|60
+|Optional
+
+|issueBeforeClose
+|Defines when a stale issue should be closed.
+|7
+|Optional
+
+|issueStaleMessage
+|Defines a comment body when issue becomes stale.
+|none
+|Optional
+
+|issueCloseMessage
+|Defines a comment body when issue is closed.
+|none
+|Optional
+
+|issueStaleLabel
+|Defines a labed to add for a stale issue.
+|stale
+|Optional
+
+|issueCloseLabel
+|Defines a labed to add for a closed issue.
+|none
+|Optional
+
+|issueExemptLabels
+|Defines labels for issues which are exempt from handling.
+|[]
+|Optional
+
+|issueUnstaleWhenUpdated
+|Defines if issue should be un-staled when issue has been updated.
+|true
+|Optional
+
+|===
+
+## Example
+
+[source,yaml]
+----
+config: >
+  {
+    "recipes": [
+      {
+        "name": "Handle stale issues",
+        "type": "staleIssues",
+        "issueSince": "P2D",
+        "issueBeforeStale": "PT15M",
+        "issueBeforeClose": "PT5M",
+        "issueStaleMessage": "Marking as stale",
+        "issueCloseMessage": "Closing as stale",
+        "issueStaleLabel": "status/stale",
+        "issueCloseLabel": "status/closed-as-stale",
+        "issueExemptLabels": "status/on-hold",
+        "issueRemoveStaleWhenUpdated": true
+      }
+    ]
+  }
+----
